@@ -17,6 +17,27 @@
 .vocab-heading{font-family:'Nunito',sans-serif;font-size:13px;font-weight:900;color:var(--navy-dark);text-transform:uppercase;letter-spacing:.07em;margin:22px 0 9px;display:flex;align-items:center;gap:8px;}
 .vocab-heading::after{content:'';flex:1;height:1px;background:var(--border);}
 .math-note{font-family:'Nunito',sans-serif;background:#eef7ff;border-left:4px solid var(--navy-mid);padding:8px 10px;border-radius:8px;margin:8px 0;font-size:13px;}
+
+/* ── Collapsible not-tested groups ── */
+.not-tested-group{overflow:hidden;transition:max-height 0.35s ease, opacity 0.25s ease;}
+.not-tested-group.collapsed{max-height:0 !important;opacity:0;pointer-events:none;}
+.not-tested-group.expanded{opacity:1;}
+
+.collapse-toggle{
+  display:flex;align-items:center;gap:8px;
+  background:none;border:1.5px dashed #c8d0da;
+  border-radius:8px;padding:7px 14px;
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;
+  color:var(--muted);cursor:pointer;width:100%;
+  margin:4px 0 8px;transition:all 0.15s;
+  text-align:left;
+}
+.collapse-toggle:hover{background:#f0f3f7;border-color:#a8b5c2;color:var(--navy-dark);}
+.toggle-arrow{
+  display:inline-block;font-size:10px;
+  transition:transform 0.25s ease;flex-shrink:0;
+}
+.collapse-toggle.open .toggle-arrow{transform:rotate(90deg);}
 .back-link{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;font-size:12px;font-weight:700;padding:6px 14px;text-decoration:none;transition:background .15s;margin-top:14px;position:relative;z-index:1;}
 .back-link:hover{background:rgba(255,255,255,.22);}
 </style>
@@ -977,13 +998,148 @@ window.MathJax = { tex: { inlineMath: [['\\(','\\)'], ['$', '$']], displayMath: 
 </tbody></table>
 </section></div>
 <script>
-function showTab(id, btn){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById('tab-'+id).classList.add('active');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');window.scrollTo({top:0,behavior:'smooth'});if(window.MathJax){MathJax.typesetPromise();}}
-function toggleAnswer(id, btn){const el=document.getElementById(id);el.classList.toggle('shown');btn.textContent=el.classList.contains('shown')?'Hide answer & walkthroughs':'Show answer & walkthroughs';if(window.MathJax){MathJax.typesetPromise([el]);}}
-function toggleCheck(el){el.classList.toggle('checked');saveProgress();updateProgress();}
-function saveProgress(){const boxes=[...document.querySelectorAll('.syl-check:not(.disabled)')];const ids=boxes.map((b,i)=>b.classList.contains('checked')?i:null).filter(x=>x!==null);localStorage.setItem('9702_22_fm26_student_ms_progress_v2',JSON.stringify(ids));}
-function loadProgress(){let ids=[];try{ids=JSON.parse(localStorage.getItem('9702_22_fm26_student_ms_progress_v2')||'[]')}catch(e){};document.querySelectorAll('.syl-check:not(.disabled)').forEach((b,i)=>{if(ids.includes(i))b.classList.add('checked')});updateProgress();}
-function updateProgress(){const boxes=[...document.querySelectorAll('.syl-check:not(.disabled)')];const done=boxes.filter(b=>b.classList.contains('checked')).length;const total=document.getElementById('totalCount');const doneEl=document.getElementById('doneCount');const fill=document.getElementById('progressFill');if(total)total.textContent=boxes.length;if(doneEl)doneEl.textContent=done;if(fill)fill.style.width=(boxes.length?done/boxes.length*100:0)+'%';}
-document.addEventListener('DOMContentLoaded',loadProgress);
+function showTab(id, btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(window.MathJax){MathJax.typesetPromise();}
+}
+
+function toggleAnswer(id, btn){
+  const el=document.getElementById(id);
+  el.classList.toggle('shown');
+  btn.textContent=el.classList.contains('shown')?'Hide answer & walkthroughs':'Show answer & walkthroughs';
+  if(window.MathJax){MathJax.typesetPromise([el]);}
+}
+
+function toggleCheck(el){
+  el.classList.toggle('checked');
+  saveProgress();
+  updateProgress();
+}
+
+function saveProgress(){
+  const boxes=[...document.querySelectorAll('.syl-check:not(.disabled)')];
+  const ids=boxes.map((b,i)=>b.classList.contains('checked')?i:null).filter(x=>x!==null);
+  localStorage.setItem('9702_22_fm26_student_ms_progress_v2',JSON.stringify(ids));
+}
+
+function loadProgress(){
+  let ids=[];
+  try{ids=JSON.parse(localStorage.getItem('9702_22_fm26_student_ms_progress_v2')||'[]')}catch(e){}
+  document.querySelectorAll('.syl-check:not(.disabled)').forEach((b,i)=>{if(ids.includes(i))b.classList.add('checked')});
+  updateProgress();
+}
+
+function updateProgress(){
+  const boxes=[...document.querySelectorAll('.syl-check:not(.disabled)')];
+  const done=boxes.filter(b=>b.classList.contains('checked')).length;
+  const total=document.getElementById('totalCount');
+  const doneEl=document.getElementById('doneCount');
+  const fill=document.getElementById('progressFill');
+  if(total)total.textContent=boxes.length;
+  if(doneEl)doneEl.textContent=done;
+  if(fill)fill.style.width=(boxes.length?done/boxes.length*100:0)+'%';
+}
+
+// ── Collapse toggle ──
+function toggleNotTested(btn) {
+  const group = btn.nextElementSibling;
+  const isOpen = btn.classList.contains('open');
+  if (isOpen) {
+    // collapse
+    group.style.maxHeight = group.scrollHeight + 'px';
+    requestAnimationFrame(() => {
+      group.style.maxHeight = group.scrollHeight + 'px';
+      requestAnimationFrame(() => {
+        group.classList.add('collapsed');
+        group.classList.remove('expanded');
+        group.style.maxHeight = '0';
+        btn.classList.remove('open');
+        btn.querySelector('.toggle-label').textContent = btn.dataset.labelClosed;
+      });
+    });
+  } else {
+    // expand
+    group.classList.remove('collapsed');
+    group.classList.add('expanded');
+    group.style.maxHeight = group.scrollHeight + 'px';
+    btn.classList.add('open');
+    btn.querySelector('.toggle-label').textContent = btn.dataset.labelOpen;
+    // after transition, allow natural height
+    group.addEventListener('transitionend', () => {
+      if(btn.classList.contains('open')) group.style.maxHeight = 'none';
+    }, {once: true});
+  }
+}
+
+// ── Auto-group not-tested rows on page load ──
+function groupNotTestedRows() {
+  const checklist = document.getElementById('tab-checklist');
+  if (!checklist) return;
+
+  // Snapshot the children once — never iterate a live NodeList during mutation
+  const snapshot = [...checklist.children];
+
+  // Find all runs of consecutive not-tested rows and record their positions
+  const runs = [];
+  let i = 0;
+  while (i < snapshot.length) {
+    const el = snapshot[i];
+    if (el.classList && el.classList.contains('syl-row') && el.classList.contains('not-tested')) {
+      let j = i;
+      while (j < snapshot.length &&
+             snapshot[j].classList &&
+             snapshot[j].classList.contains('syl-row') &&
+             snapshot[j].classList.contains('not-tested')) {
+        j++;
+      }
+      runs.push({ start: i, end: j, rows: snapshot.slice(i, j) });
+      i = j;
+    } else {
+      i++;
+    }
+  }
+
+  // Process runs in REVERSE order so earlier indices stay valid
+  runs.reverse().forEach(({ rows }) => {
+    const count = rows.length;
+    if (count === 0) return;
+
+    // Build wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'not-tested-group collapsed';
+    wrapper.style.maxHeight = '0';
+    wrapper.style.overflow = 'hidden';
+
+    // Build toggle button
+    const labelClosed = `Show ${count} not-assessed point${count > 1 ? 's' : ''} from this subtopic`;
+    const labelOpen   = `Hide ${count} not-assessed point${count > 1 ? 's' : ''} from this subtopic`;
+    const btn = document.createElement('button');
+    btn.className = 'collapse-toggle';
+    btn.dataset.labelClosed = labelClosed;
+    btn.dataset.labelOpen   = labelOpen;
+    btn.innerHTML = `<span class="toggle-arrow">▶</span><span class="toggle-label">${labelClosed}</span>`;
+    btn.onclick = () => toggleNotTested(btn);
+
+    // Insert button before the first row in this run
+    const firstRow = rows[0];
+    checklist.insertBefore(btn, firstRow);
+
+    // Move all rows into wrapper (removes them from checklist automatically)
+    rows.forEach(row => wrapper.appendChild(row));
+
+    // Insert wrapper right after the button
+    btn.insertAdjacentElement('afterend', wrapper);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  groupNotTestedRows();
+  loadProgress();
+});
 </script>
 <div style="text-align:center;padding:24px 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);background:var(--card);margin-top:40px;">
   <strong style="color:var(--navy-dark)">Dr Pop's Enriched Revision</strong> · CAIE A Level Physics 9702<br>
