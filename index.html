@@ -52,18 +52,36 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
 
 /* ── Level switcher ── */
 .level-switcher{
-  display:flex;gap:0;background:rgba(255,255,255,0.1);
-  border:1px solid rgba(255,255,255,0.2);border-radius:10px;
-  overflow:hidden;margin:18px auto 0;width:fit-content;position:relative;
+  display:flex;gap:10px;
+  margin:24px auto 0;width:fit-content;position:relative;
 }
 .level-btn{
-  padding:9px 24px;border:none;background:none;
-  font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;
-  color:rgba(255,255,255,0.65);cursor:pointer;transition:all 0.15s;
-  letter-spacing:0.04em;
+  padding:13px 28px;
+  border:2px solid rgba(255,255,255,0.3);
+  background:rgba(255,255,255,0.08);
+  border-radius:12px;
+  font-family:'Nunito',sans-serif;font-size:15px;font-weight:900;
+  color:rgba(255,255,255,0.65);cursor:pointer;
+  transition:all 0.2s;letter-spacing:0.03em;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
 }
-.level-btn.active{background:rgba(255,255,255,0.2);color:white;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.25);}
-.level-btn:hover:not(.active){color:white;}
+.level-btn .btn-sub{
+  font-size:10px;font-weight:600;opacity:0.65;
+  letter-spacing:0.07em;text-transform:uppercase;
+}
+.level-btn:hover:not(.active){
+  background:rgba(255,255,255,0.14);
+  border-color:rgba(255,255,255,0.55);
+  color:white;transform:translateY(-2px);
+}
+.level-btn.active{
+  background:rgba(255,255,255,0.2);
+  border-color:#ffe066;
+  color:white;
+  box-shadow:0 4px 20px rgba(0,0,0,0.2),0 0 0 1px rgba(255,224,102,0.35);
+  transform:translateY(-1px);
+}
+.level-btn.active .btn-sub{opacity:0.85;}
 
 /* ── Container ── */
 .container{max-width:920px;margin:0 auto;padding:32px 16px 72px;}
@@ -151,8 +169,14 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
   </div>
   <!-- Level switcher -->
   <div class="level-switcher">
-    <button class="level-btn active" onclick="showLevel('igcse',this)">IGCSE · Year 9–11</button>
-    <button class="level-btn" onclick="showLevel('alevel',this)">AS &amp; A Level</button>
+    <button class="level-btn active" onclick="showLevel('igcse',this)">
+      🎒 IGCSE
+      <span class="btn-sub">Year 9 – 11</span>
+    </button>
+    <button class="level-btn" onclick="showLevel('alevel',this)">
+      🎓 AS &amp; A Level
+      <span class="btn-sub">Year 12 – 13</span>
+    </button>
   </div>
 </div>
 
