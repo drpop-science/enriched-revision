@@ -6,7 +6,7 @@
 <link href="favicon.ico" rel="icon" sizes="any"/>
 <link href="drpop_face_favicon_512.png" rel="icon" type="image/png"/>
 <link href="drpop_face_apple_touch_180.png" rel="apple-touch-icon"/>
-<title>9702/12 F/M/26 · MCQ Revision</title>
+<title>9702/12 F/M/26 · Typed MCQ Revision</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;family=Lato:wght@400;700&amp;display=swap" rel="stylesheet"/>
 <style>
 :root{--navy-dark:#17365d;--navy-mid:#2d78b7;--navy-light:#e9f4ff;--amber:#f39c12;--amber-light:#fef9e7;--purple:#7d3c98;--purple-light:#f5eef8;--teal:#117a65;--teal-light:#d5f5e3;--red:#c0392b;--red-light:#fdecea;--green:#1a7a3c;--green-light:#eafaf1;--bg:#f5f7fb;--card:#fff;--text:#1d2630;--muted:#657282;--border:#d8e0ea;--radius:12px;--shadow:0 2px 14px rgba(0,0,0,.07)}
@@ -738,10 +738,16 @@ body.test-mode-page .translation-panel-clean{
     max-width:360px!important;
   }
 }
+
+
+/* v7.6 polish: show text-size toggle only on the MCQ tab */
+body:not(.mcq-tab-active) .floating-text-toggle{
+  display:none!important;
+}
 </style>
 <script>window.MathJax={tex:{inlineMath:[['\\(','\\)'],['$','$']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script><script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head><body>
-<div class="site-header"><div class="header-badge">⚛️ CAIE 9702 · Paper 1 · Student Support</div><h1>9702/12 F/M/26 Typed MCQ Revision Support</h1><p>Typed MCQs · diagram crops · revision mode · test yourself mode · full AS syllabus checklist · provisional AI-drafted answers</p><a class="back-link" href="https://drpop-science.github.io/enriched-revision/index.html">← Back to Dr Pop's Enriched Revision</a></div>
+<div class="site-header"><div class="header-badge">⚛️ CAIE 9702 · Paper 1 · Student Support</div><h1>9702/12 F/M/26 MCQ Revision Support</h1><p>MCQs · diagram crops · revision mode · test yourself mode · full AS syllabus checklist · multilingual support</p><a class="back-link" href="https://drpop-science.github.io/enriched-revision/index.html">← Back to Dr Pop's Enriched Revision</a></div>
 <div class="nav-tabs"><div class="nav-tabs-inner"><button class="tab-btn active" onclick="showTab('checklist',this)">📋 Checklist</button><button class="tab-btn" onclick="showTab('mcq',this)">🧠 MCQs</button><button class="tab-btn" onclick="showTab('answers',this)">✅ Answer Key</button><button class="tab-btn" onclick="showTab('formulae',this)">🧮 Formulae</button><button class="tab-btn" onclick="showTab('vocab',this)">📚 Vocabulary</button></div></div>
 <div class="container">
 <section class="section active" id="tab-checklist"><div class="progress-header">
@@ -2155,7 +2161,7 @@ body.test-mode-page .translation-panel-clean{
 </div></article></div>
 <div class="submit-bar" id="submitBar"><button class="btn-submit" onclick="submitTest()">Submit test</button><button class="btn-reset-all" onclick="resetAll()">Reset all</button><div class="score-box" id="scoreBox"></div></div>
 </section>
-<section class="section" id="tab-answers"><div class="callout warn"><span>⚠️</span><span>These are provisional answers based on AI drafting and internal checking. Treat them as a help guide until the official mark scheme is available.</span></div><table class="answer-table"><thead><tr><th>Question</th><th>Answer</th><th>Topic</th><th>Subtopic</th></tr></thead><tbody><tr><td>Q01</td><td>D</td><td>Physical quantities and units</td><td>SI prefixes</td></tr>
+<section class="section" id="tab-answers"><div class="callout warn"><span>⚠️</span><span>Answers are provided as a revision guide. Check against the official mark scheme when it becomes available.</span></div><table class="answer-table"><thead><tr><th>Question</th><th>Answer</th><th>Topic</th><th>Subtopic</th></tr></thead><tbody><tr><td>Q01</td><td>D</td><td>Physical quantities and units</td><td>SI prefixes</td></tr>
 <tr><td>Q02</td><td>B</td><td>Measurement techniques</td><td>Systematic errors</td></tr>
 <tr><td>Q03</td><td>D</td><td>Uncertainties</td><td>Percentage uncertainty in quotient</td></tr>
 <tr><td>Q04</td><td>B</td><td>Kinematics</td><td>Motion graphs</td></tr>
@@ -2229,6 +2235,7 @@ function showTab(id, btn){
   if(target) target.classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+  document.body.classList.toggle('mcq-tab-active', id === 'mcq');
   if(window.MathJax && MathJax.typesetPromise){ MathJax.typesetPromise(); }
 }
 
