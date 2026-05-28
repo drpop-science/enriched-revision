@@ -1,13 +1,17 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="favicon.ico" rel="icon" sizes="any"/>
+<link href="drpop_face_favicon_512.png" rel="icon" type="image/png"/>
+<link href="drpop_face_apple_touch_180.png" rel="apple-touch-icon"/>
+
 <title>Dr Pop's Enriched Revision</title>
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" type="image/png" href="drpop_face_favicon_512.png">
-<link rel="apple-touch-icon" href="drpop_face_apple_touch_180.png">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;family=Lato:wght@400;700&amp;display=swap" rel="stylesheet"/>
 <style>
 :root {
   /* Biology — green */
@@ -154,254 +158,252 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
   .resource-grid{grid-template-columns:1fr;}
   .level-btn{padding:8px 16px;font-size:12px;}
 }
+
+/* Dynamic New badge handling */
+.badge-new.is-old{display:none!important;}
 </style>
 </head>
 <body>
-
 <!-- ── Hero ── -->
 <div class="hero">
-  <div class="hero-name">Dr Pop · CAIE Science Resources</div>
-  <h1>Enriched <span>Revision</span></h1>
-  <p>Interactive study walkthroughs, past paper practice and mark scheme explanations — built for CAIE students. Free, works on any device, no login needed.</p>
-  <div class="hero-chips">
-    <span class="hero-chip">IGCSE · AS · A Level</span>
-    <span class="hero-chip">EAL Friendly</span>
-    <span class="hero-chip">English · 中文 · ภาษาไทย</span>
-    <span class="hero-chip">Mark Schemes Included</span>
-    <span class="hero-chip">Free to Use</span>
-  </div>
-  <!-- Level switcher -->
-  <div class="level-switcher">
-    <button class="level-btn active" onclick="showLevel('igcse',this)">
+<div class="hero-name">Dr Pop · CAIE Science Resources</div>
+<h1>Enriched <span>Revision</span></h1>
+<p>Interactive study walkthroughs, past paper practice and mark scheme explanations — built for CAIE students. Free, works on any device, no login needed.</p>
+<div class="hero-chips">
+<span class="hero-chip">IGCSE · AS · A Level</span>
+<span class="hero-chip">EAL Friendly</span>
+<span class="hero-chip">English · 中文 · ภาษาไทย</span>
+<span class="hero-chip">Mark Schemes Included</span>
+<span class="hero-chip">Free to Use</span>
+</div>
+<!-- Level switcher -->
+<div class="level-switcher">
+<button class="level-btn active" onclick="showLevel('igcse',this)">
       🎒 IGCSE
       <span class="btn-sub">Year 9 – 11</span>
-    </button>
-    <button class="level-btn" onclick="showLevel('alevel',this)">
+</button>
+<button class="level-btn" onclick="showLevel('alevel',this)">
       🎓 AS &amp; A Level
       <span class="btn-sub">Year 12 – 13</span>
-    </button>
-  </div>
+</button>
 </div>
-
+</div>
 <div class="container">
-
-  <div class="info-banner">
-    <span class="info-icon">💡</span>
-    <span>Each card opens as a standalone interactive page — no app, no login. Resources include CAIE past paper questions, step-by-step mark scheme walkthroughs, and vocabulary in three languages. Bookmark this page and check back as new topics are added.</span>
-  </div>
-
-  <!-- ════════════════════════════════
+<div class="info-banner">
+<span class="info-icon">💡</span>
+<span>Each card opens as a standalone interactive page — no app, no login. Resources include CAIE past paper questions, step-by-step mark scheme walkthroughs, and vocabulary in three languages. Bookmark this page and check back as new topics are added.</span>
+</div>
+<!-- ════════════════════════════════
        IGCSE SECTION
   ════════════════════════════════ -->
-  <div id="level-igcse" class="level-section active">
-
-    <!-- Physics -->
-    <div class="section-head">
-      <span class="section-icon">⚡</span>
-      <span class="section-title" style="color:var(--phy-dark);">Physics · IGCSE 0625</span>
-      <div class="section-line"></div>
-    </div>
-    <p class="section-sub">Year 9–10 · Topic tests, end-of-year revision and interactive support</p>
-
-    <div class="resource-grid">
-
-      <a class="resource-card" href="https://drpop-science.github.io/enriched-revision/igcse_physics_y10_exam_revision.html">
-        <div class="card-stripe" style="background:linear-gradient(90deg,var(--phy-dark),var(--phy-mid) 55%,var(--teal));"></div>
-        <div class="card-inner">
-          <div class="card-top">
-            <span class="card-emoji">⚡</span>
-            <div class="badge-stack">
-              <span class="badge badge-ready">Ready ✓</span>
-              <span class="badge badge-eoy">End of Year</span>
-            </div>
-          </div>
-          <div class="card-title">End-of-Year Physics Revision Support 2026</div>
-          <div class="card-desc">Year 10 IGCSE Physics 0625 revision website with syllabus checklist, formulae, vocabulary, key ideas and 60 interactive MCQs across Topics 1, 2, 3, 5 and 6.</div>
-          <div class="card-tags">
-            <span class="tag">IGCSE 0625</span>
-            <span class="tag">Year 10</span>
-            <span class="tag">Topics 1 · 2 · 3 · 5 · 6</span>
-            <span class="tag">Test Yourself</span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <span>Checklist · 60 MCQs · Walkthroughs</span>
-          <span class="open-link" style="color:var(--phy-mid);">Open →</span>
-        </div>
-      </a>
-
-      <div class="resource-card coming-soon">
-        <div class="card-stripe" style="background:linear-gradient(90deg,var(--phy-mid),var(--teal));"></div>
-        <div class="card-inner">
-          <div class="card-top"><span class="card-emoji">🌊</span><span class="badge badge-soon">Coming Soon</span></div>
-          <div class="card-title">Waves &amp; Wave Properties</div>
-          <div class="card-desc">Transverse vs longitudinal, wave speed (v = fλ), reflection, refraction and diffraction — with diagram questions and PPQ walkthroughs.</div>
-          <div class="card-tags"><span class="tag">IGCSE 0625</span><span class="tag">v = fλ</span><span class="tag">Paper 2 &amp; 4</span></div>
-        </div>
-        <div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
-      </div>
-
-      <div class="resource-card coming-soon">
-        <div class="card-stripe" style="background:linear-gradient(90deg,var(--teal),#0e6655);"></div>
-        <div class="card-inner">
-          <div class="card-top"><span class="card-emoji">🔊</span><span class="badge badge-soon">Coming Soon</span></div>
-          <div class="card-title">Sound</div>
-          <div class="card-desc">Properties of sound waves, speed of sound, echoes and ultrasound applications — MCQs and structured questions with mark scheme walkthroughs.</div>
-          <div class="card-tags"><span class="tag">IGCSE 0625</span><span class="tag">Longitudinal</span><span class="tag">Ultrasound</span></div>
-        </div>
-        <div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
-      </div>
-
-      <div class="resource-card coming-soon">
-        <div class="card-stripe" style="background:linear-gradient(90deg,var(--phy-dark),var(--phy-mid) 50%,#e67e22);"></div>
-        <div class="card-inner">
-          <div class="card-top">
-            <span class="card-emoji">🌟</span>
-            <div class="badge-stack">
-              <span class="badge badge-soon">Coming Soon</span>
-              <span class="badge badge-eoy">End of Year</span>
-            </div>
-          </div>
-          <div class="card-title">Year 9 Physics End of Year Exam</div>
-          <div class="card-desc">Thermal Physics, Nuclear Physics and Space Physics — including the complete life cycle of a star (nebula → main sequence → red giant → white dwarf / supernova → neutron star / black hole).</div>
-          <div class="card-tags"><span class="tag">Thermal</span><span class="tag">Nuclear</span><span class="tag">Space &amp; Stars</span></div>
-        </div>
-        <div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
-      </div>
-
-    </div>
-
-    <!-- Biology -->
-    <div class="section-head" style="margin-top:36px;">
-      <span class="section-icon">🌿</span>
-      <span class="section-title" style="color:var(--bio-dark);">Biology · IGCSE 0610</span>
-      <div class="section-line"></div>
-    </div>
-    <p class="section-sub">Year 9 · Topics 19.1 – 19.3 · Organisms &amp; Their Environment</p>
-
-    <div class="resource-grid">
-
-      <a class="resource-card" href="https://drpop-science.github.io/enriched-revision/ecosystems-syllabus-ppq.html">
-        <div class="card-stripe" style="background:linear-gradient(90deg,var(--bio-mid),var(--teal));"></div>
-        <div class="card-inner">
-          <div class="card-top"><span class="card-emoji">🌾</span><span class="badge badge-ready">Ready ✓</span></div>
-          <div class="card-title">Ecosystems, Food Chains &amp; Food Webs and Carbon Cycle</div>
-          <div class="card-desc">Official 0610 syllabus checklist (Topics 19.1–19.3) with progress tracking, plus interactive past paper questions and trilingual vocabulary — all with mark scheme explanations.</div>
-          <div class="card-tags">
-            <span class="tag">Syllabus Checklist</span>
-            <span class="tag">Interactive PPQs</span>
-            <span class="tag">19.1 · 19.2 · 19.3</span>
-            <span class="tag">EN · 中文 · ภาษาไทย</span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <span>MJ23 · MJ24 · ON23 · ON22 · MJ22</span>
-          <span class="open-link" style="color:var(--bio-mid);">Open →</span>
-        </div>
-      </a>
-
-    </div>
-
-    <!-- Chemistry -->
-    <div class="section-head" style="margin-top:36px;">
-      <span class="section-icon">⚗️</span>
-      <span class="section-title" style="color:var(--chem-dark);">Chemistry · IGCSE 0620</span>
-      <div class="section-line"></div>
-    </div>
-    <p class="section-sub">Year 9 · In development</p>
-
-    <div class="resource-grid">
-
-      <div class="resource-card coming-soon">
-        <div class="card-stripe" style="background:linear-gradient(90deg,var(--chem-dark),var(--chem-mid));"></div>
-        <div class="card-inner">
-          <div class="card-top"><span class="card-emoji">🧪</span><span class="badge badge-soon">Coming Soon</span></div>
-          <div class="card-title">Particle Model &amp; States of Matter</div>
-          <div class="card-desc">Kinetic theory, changes of state, heating and cooling curves — with PPQ walkthroughs and calculation questions.</div>
-          <div class="card-tags"><span class="tag">IGCSE 0620</span><span class="tag">Paper 2 &amp; 4</span></div>
-        </div>
-        <div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
-      </div>
-
-    </div>
-
-  </div><!-- end igcse -->
-
-  <!-- ════════════════════════════════
+<div class="level-section active" id="level-igcse">
+<!-- Physics -->
+<div class="section-head">
+<span class="section-icon">⚡</span>
+<span class="section-title" style="color:var(--phy-dark);">Physics · IGCSE 0625</span>
+<div class="section-line"></div>
+</div>
+<p class="section-sub">Year 9–10 · Topic tests, end-of-year revision and interactive support</p>
+<div class="resource-grid">
+<a class="resource-card" href="https://drpop-science.github.io/enriched-revision/igcse_physics_y10_exam_revision.html">
+<div class="card-stripe" style="background:linear-gradient(90deg,var(--phy-dark),var(--phy-mid) 55%,var(--teal));"></div>
+<div class="card-inner">
+<div class="card-top">
+<span class="card-emoji">⚡</span>
+<div class="badge-stack">
+<span class="badge badge-ready">Ready ✓</span>
+<span class="badge badge-eoy">End of Year</span>
+</div>
+</div>
+<div class="card-title">End-of-Year Physics Revision Support 2026</div>
+<div class="card-desc">Year 10 IGCSE Physics 0625 revision website with syllabus checklist, formulae, vocabulary, key ideas and 60 interactive MCQs across Topics 1, 2, 3, 5 and 6.</div>
+<div class="card-tags">
+<span class="tag">IGCSE 0625</span>
+<span class="tag">Year 10</span>
+<span class="tag">Topics 1 · 2 · 3 · 5 · 6</span>
+<span class="tag">Test Yourself</span>
+</div>
+</div>
+<div class="card-footer">
+<span>Checklist · 60 MCQs · Walkthroughs</span>
+<span class="open-link" style="color:var(--phy-mid);">Open →</span>
+</div>
+</a>
+<div class="resource-card coming-soon">
+<div class="card-stripe" style="background:linear-gradient(90deg,var(--phy-mid),var(--teal));"></div>
+<div class="card-inner">
+<div class="card-top"><span class="card-emoji">🌊</span><span class="badge badge-soon">Coming Soon</span></div>
+<div class="card-title">Waves &amp; Wave Properties</div>
+<div class="card-desc">Transverse vs longitudinal, wave speed (v = fλ), reflection, refraction and diffraction — with diagram questions and PPQ walkthroughs.</div>
+<div class="card-tags"><span class="tag">IGCSE 0625</span><span class="tag">v = fλ</span><span class="tag">Paper 2 &amp; 4</span></div>
+</div>
+<div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
+</div>
+<div class="resource-card coming-soon">
+<div class="card-stripe" style="background:linear-gradient(90deg,var(--teal),#0e6655);"></div>
+<div class="card-inner">
+<div class="card-top"><span class="card-emoji">🔊</span><span class="badge badge-soon">Coming Soon</span></div>
+<div class="card-title">Sound</div>
+<div class="card-desc">Properties of sound waves, speed of sound, echoes and ultrasound applications — MCQs and structured questions with mark scheme walkthroughs.</div>
+<div class="card-tags"><span class="tag">IGCSE 0625</span><span class="tag">Longitudinal</span><span class="tag">Ultrasound</span></div>
+</div>
+<div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
+</div>
+<div class="resource-card coming-soon">
+<div class="card-stripe" style="background:linear-gradient(90deg,var(--phy-dark),var(--phy-mid) 50%,#e67e22);"></div>
+<div class="card-inner">
+<div class="card-top">
+<span class="card-emoji">🌟</span>
+<div class="badge-stack">
+<span class="badge badge-soon">Coming Soon</span>
+<span class="badge badge-eoy">End of Year</span>
+</div>
+</div>
+<div class="card-title">Year 9 Physics End of Year Exam</div>
+<div class="card-desc">Thermal Physics, Nuclear Physics and Space Physics — including the complete life cycle of a star (nebula → main sequence → red giant → white dwarf / supernova → neutron star / black hole).</div>
+<div class="card-tags"><span class="tag">Thermal</span><span class="tag">Nuclear</span><span class="tag">Space &amp; Stars</span></div>
+</div>
+<div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
+</div>
+</div>
+<!-- Biology -->
+<div class="section-head" style="margin-top:36px;">
+<span class="section-icon">🌿</span>
+<span class="section-title" style="color:var(--bio-dark);">Biology · IGCSE 0610</span>
+<div class="section-line"></div>
+</div>
+<p class="section-sub">Year 9 · Topics 19.1 – 19.3 · Organisms &amp; Their Environment</p>
+<div class="resource-grid">
+<a class="resource-card" href="https://drpop-science.github.io/enriched-revision/ecosystems-syllabus-ppq.html">
+<div class="card-stripe" style="background:linear-gradient(90deg,var(--bio-mid),var(--teal));"></div>
+<div class="card-inner">
+<div class="card-top"><span class="card-emoji">🌾</span><span class="badge badge-ready">Ready ✓</span></div>
+<div class="card-title">Ecosystems, Food Chains &amp; Food Webs and Carbon Cycle</div>
+<div class="card-desc">Official 0610 syllabus checklist (Topics 19.1–19.3) with progress tracking, plus interactive past paper questions and trilingual vocabulary — all with mark scheme explanations.</div>
+<div class="card-tags">
+<span class="tag">Syllabus Checklist</span>
+<span class="tag">Interactive PPQs</span>
+<span class="tag">19.1 · 19.2 · 19.3</span>
+<span class="tag">EN · 中文 · ภาษาไทย</span>
+</div>
+</div>
+<div class="card-footer">
+<span>MJ23 · MJ24 · ON23 · ON22 · MJ22</span>
+<span class="open-link" style="color:var(--bio-mid);">Open →</span>
+</div>
+</a>
+</div>
+<!-- Chemistry -->
+<div class="section-head" style="margin-top:36px;">
+<span class="section-icon">⚗️</span>
+<span class="section-title" style="color:var(--chem-dark);">Chemistry · IGCSE 0620</span>
+<div class="section-line"></div>
+</div>
+<p class="section-sub">Year 9 · In development</p>
+<div class="resource-grid">
+<div class="resource-card coming-soon">
+<div class="card-stripe" style="background:linear-gradient(90deg,var(--chem-dark),var(--chem-mid));"></div>
+<div class="card-inner">
+<div class="card-top"><span class="card-emoji">🧪</span><span class="badge badge-soon">Coming Soon</span></div>
+<div class="card-title">Particle Model &amp; States of Matter</div>
+<div class="card-desc">Kinetic theory, changes of state, heating and cooling curves — with PPQ walkthroughs and calculation questions.</div>
+<div class="card-tags"><span class="tag">IGCSE 0620</span><span class="tag">Paper 2 &amp; 4</span></div>
+</div>
+<div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
+</div>
+</div>
+</div><!-- end igcse -->
+<!-- ════════════════════════════════
        A LEVEL SECTION
   ════════════════════════════════ -->
-  <div id="level-alevel" class="level-section">
-
-    <!-- A Level Physics -->
-    <div class="section-head">
-      <span class="section-icon">⚛️</span>
-      <span class="section-title" style="color:var(--phy-dark);">Physics · AS &amp; A Level 9702</span>
-      <div class="section-line"></div>
-    </div>
-    <p class="section-sub">Year 12–13 · Paper 1 MCQ · Paper 2 Theory · Paper 4 A Level Theory</p>
-
-    <div class="resource-grid">
-
-      <!-- FM26 Paper 2 — READY -->
-      <a class="resource-card" href="https://drpop-science.github.io/enriched-revision/9702_22_FM_2026_mark_scheme.html">
-        <div class="card-stripe" style="background:linear-gradient(90deg,#0f2546,var(--phy-dark) 50%,var(--phy-mid));"></div>
-        <div class="card-inner">
-          <div class="card-top">
-            <span class="card-emoji">📝</span>
-            <div class="badge-stack">
-              <span class="badge badge-ready">Ready ✓</span>
-              <span class="badge badge-new">New</span>
-            </div>
-          </div>
-          <div class="card-title">AS Physics · 9702/22 · Feb/Mar 2026</div>
-          <div class="card-desc">Student-supported mark scheme with question images, guided walkthroughs, syllabus checklist, relevant formulae and multilingual vocabulary — covering physical quantities, kinematics, dynamics, waves, electricity and particle physics.</div>
-          <div class="card-tags">
-            <span class="tag">Paper 2</span>
-            <span class="tag">F/M 2026</span>
-            <span class="tag">AS Level</span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <span>9702/22 · F/M/26</span>
-          <span class="open-link" style="color:var(--phy-mid);">Open →</span>
-        </div>
-      </a>
-
-      <!-- More papers coming soon -->
-      <div class="resource-card coming-soon">
-        <div class="card-stripe" style="background:linear-gradient(90deg,var(--phy-dark),var(--phy-mid));"></div>
-        <div class="card-inner">
-          <div class="card-top"><span class="card-emoji">📋</span><span class="badge badge-soon">Coming Soon</span></div>
-          <div class="card-title">AS Physics · Syllabus Reference</div>
-          <div class="card-desc">Complete 9702 AS syllabus checklist with progress tracking, formula sheet and trilingual vocabulary — covering all AS topics.</div>
-          <div class="card-tags"><span class="tag">9702</span><span class="tag">AS Level</span><span class="tag">All Topics</span></div>
-        </div>
-        <div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
-      </div>
-
-      <div class="resource-card coming-soon">
-        <div class="card-stripe" style="background:linear-gradient(90deg,var(--phy-mid),#1565c0);"></div>
-        <div class="card-inner">
-          <div class="card-top"><span class="card-emoji">🧲</span><span class="badge badge-soon">Coming Soon</span></div>
-          <div class="card-title">A2 Physics · Fields &amp; Particles</div>
-          <div class="card-desc">Gravitational and electric fields, capacitors, magnetic fields, nuclear physics and particle physics — A2 content with full PPQ walkthroughs.</div>
-          <div class="card-tags"><span class="tag">9702</span><span class="tag">A2 Level</span><span class="tag">Paper 4</span></div>
-        </div>
-        <div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
-      </div>
-
-    </div>
-
-  </div><!-- end alevel -->
-
-</div><!-- end container -->
-
-<div class="site-footer">
-  <strong>Dr Pop's Enriched Revision</strong> · CAIE IGCSE &amp; A Level Science<br>
-  <span style="margin-top:5px;display:block;">Past paper questions © Cambridge University Press &amp; Assessment · Used for educational purposes only.</span>
-  <span style="margin-top:3px;display:block;font-size:11px;">drpop-science.github.io/enriched-revision</span>
+<div class="level-section" id="level-alevel">
+<!-- A Level Physics -->
+<div class="section-head">
+<span class="section-icon">⚛️</span>
+<span class="section-title" style="color:var(--phy-dark);">Physics · AS &amp; A Level 9702</span>
+<div class="section-line"></div>
 </div>
+<p class="section-sub">Year 12–13 · Paper 1 MCQ · Paper 2 Theory · Paper 4 A Level Theory</p>
+<div class="resource-grid">
+<!-- FM26 Paper 2 — READY -->
+<a class="resource-card" data-added="2026-05-24" href="https://drpop-science.github.io/enriched-revision/9702_22_FM_2026_mark_scheme.html">
+<div class="card-stripe" style="background:linear-gradient(90deg,#0f2546,var(--phy-dark) 50%,var(--phy-mid));"></div>
+<div class="card-inner">
+<div class="card-top">
+<span class="card-emoji">📝</span>
+<div class="badge-stack">
+<span class="badge badge-ready">Ready ✓</span>
+<span class="badge badge-new" data-added="2026-05-24" data-new-badge="">New</span>
+</div>
+</div>
+<div class="card-title">AS Physics · 9702/22 · Feb/Mar 2026</div>
+<div class="card-desc">Student-supported mark scheme with question images, guided walkthroughs, syllabus checklist, relevant formulae and multilingual vocabulary — covering physical quantities, kinematics, dynamics, waves, electricity and particle physics.</div>
+<div class="card-tags">
+<span class="tag">Paper 2</span>
+<span class="tag">F/M 2026</span>
+<span class="tag">AS Level</span>
+</div>
+</div>
+<div class="card-footer">
+<span>9702/22 · F/M/26</span>
+<span class="open-link" style="color:var(--phy-mid);">Open →</span>
+</div>
+</a>
+<!-- FM26 Paper 1 Variant 12 — READY -->
+<a class="resource-card" data-added="2026-05-28" href="https://drpop-science.github.io/enriched-revision/9702_12_FM_2026_mark_scheme.html">
+<div class="card-stripe" style="background:linear-gradient(90deg,#0f2546,var(--phy-dark) 50%,var(--phy-mid));"></div>
+<div class="card-inner">
+<div class="card-top">
+<span class="card-emoji">🧠</span>
+<div class="badge-stack">
+<span class="badge badge-ready">Ready ✓</span>
+<span class="badge badge-new" data-added="2026-05-28" data-new-badge="">New</span>
+</div>
+</div>
+<div class="card-title">AS Physics · 9702/12 · Feb/Mar 2026</div>
+<div class="card-desc">Typed MCQ revision set with revise mode, test-yourself mode, student-friendly walkthroughs, syllabus checklist, formulae and vocabulary. Built from Paper 12 with diagram-only crops and provisional AI-supported answers.</div>
+<div class="card-tags">
+<span class="tag">Paper 1</span>
+<span class="tag">MCQ</span>
+<span class="tag">F/M 2026</span>
+<span class="tag">AS Level</span>
+</div>
+</div>
+<div class="card-footer">
+<span>9702/12 · F/M/26</span>
+<span class="open-link" style="color:var(--phy-mid);">Open →</span>
+</div>
+</a>
 
+<!-- More papers coming soon -->
+<div class="resource-card coming-soon">
+<div class="card-stripe" style="background:linear-gradient(90deg,var(--phy-dark),var(--phy-mid));"></div>
+<div class="card-inner">
+<div class="card-top"><span class="card-emoji">📋</span><span class="badge badge-soon">Coming Soon</span></div>
+<div class="card-title">AS Physics · Syllabus Reference</div>
+<div class="card-desc">Complete 9702 AS syllabus checklist with progress tracking, formula sheet and trilingual vocabulary — covering all AS topics.</div>
+<div class="card-tags"><span class="tag">9702</span><span class="tag">AS Level</span><span class="tag">All Topics</span></div>
+</div>
+<div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
+</div>
+<div class="resource-card coming-soon">
+<div class="card-stripe" style="background:linear-gradient(90deg,var(--phy-mid),#1565c0);"></div>
+<div class="card-inner">
+<div class="card-top"><span class="card-emoji">🧲</span><span class="badge badge-soon">Coming Soon</span></div>
+<div class="card-title">A2 Physics · Fields &amp; Particles</div>
+<div class="card-desc">Gravitational and electric fields, capacitors, magnetic fields, nuclear physics and particle physics — A2 content with full PPQ walkthroughs.</div>
+<div class="card-tags"><span class="tag">9702</span><span class="tag">A2 Level</span><span class="tag">Paper 4</span></div>
+</div>
+<div class="card-footer"><span>In preparation</span><span class="open-link" style="color:var(--muted);">Soon →</span></div>
+</div>
+</div>
+</div><!-- end alevel -->
+</div><!-- end container -->
+<div class="site-footer">
+<strong>Dr Pop's Enriched Revision</strong> · CAIE IGCSE &amp; A Level Science<br/>
+<span style="margin-top:5px;display:block;">Past paper questions © Cambridge University Press &amp; Assessment · Used for educational purposes only.</span>
+<span style="margin-top:3px;display:block;font-size:11px;">drpop-science.github.io/enriched-revision</span>
+</div>
 <script>
 function showLevel(id, btn) {
   document.querySelectorAll('.level-section').forEach(s => s.classList.remove('active'));
@@ -412,5 +414,21 @@ function showLevel(id, btn) {
 }
 </script>
 
+<script>
+(function(){
+  const NEW_WINDOW_DAYS = 7;
+  const now = new Date();
+  document.querySelectorAll('[data-new-badge]').forEach(function(badge){
+    const dateString = badge.getAttribute('data-added') || badge.closest('[data-added]')?.getAttribute('data-added');
+    if(!dateString) return;
+    const added = new Date(dateString + 'T00:00:00');
+    const ageDays = (now - added) / (1000 * 60 * 60 * 24);
+    if(ageDays > NEW_WINDOW_DAYS){
+      badge.classList.add('is-old');
+      badge.setAttribute('aria-hidden','true');
+    }
+  });
+})();
+</script>
 </body>
 </html>
