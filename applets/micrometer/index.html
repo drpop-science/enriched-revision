@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Micrometer screw gauge — Dr Pop's Enriched Revision</title>
+<style>
+  :root{
+    --ground:#12212e;
+    --panel:#182a3a;
+    --panel-2:#1e3448;
+    --rule:#2c4459;
+    --ink:#e7eef4;
+    --ink-dim:#93a8ba;
+    --amber:#f0b429;
+    --good:#4ec9a4;
+    --bad:#e8735b;
+    --steel-hi:#eef3f8;
+    --steel-mid:#c3ccd8;
+    --steel-lo:#5b6472;
+    --engrave:#1b2530;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 20px 40px}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+  h1{font-size:24px;font-weight:600;letter-spacing:-.01em;margin:0}
+  .brand{font-size:13px;color:var(--ink-dim)}
+  .brand b{font-weight:600;color:#b9cbd9}
+
+  .stage{
+    background:var(--panel);
+    border:1px solid var(--rule);
+    border-radius:14px;
+    padding:8px 10px 2px;
+    overflow:hidden;
+  }
+  .stage svg{display:block;width:100%;height:auto}
+  #tool{max-width:820px;margin:0 auto 2px}
+
+  .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+  @media (min-width:760px){ .layout{grid-template-columns:minmax(0,1fr) 292px} }
+  @media (min-width:1000px){ .layout{grid-template-columns:minmax(0,1fr) 330px} }
+
+  .panel{
+    display:flex;flex-direction:column;gap:10px;
+    padding:16px;background:var(--panel);
+    border:1px solid var(--rule);border-radius:14px;
+  }
+  button{
+    font:inherit;font-size:15px;font-weight:500;
+    color:var(--ink);background:var(--panel-2);
+    border:1px solid var(--rule);border-radius:9px;
+    padding:11px 16px;cursor:pointer;
+    transition:background .15s ease,border-color .15s ease;
+  }
+  button:hover:not(:disabled){background:#26405a;border-color:#3d5d78}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .ico{width:17px;height:17px;margin-right:8px;vertical-align:-3px}
+  button.primary{background:var(--amber);border-color:var(--amber);color:#241c05;font-weight:600}
+  button.primary:hover:not(:disabled){background:#ffc93f;border-color:#ffc93f}
+  .block{width:100%}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+  .lbl{font-size:13px;color:var(--ink-dim);margin-top:4px}
+  .field{position:relative;display:flex;align-items:center}
+  input[type=text]{
+    font-family:var(--mono);font-size:24px;font-weight:600;
+    width:100%;padding:10px 52px 10px 14px;
+    color:var(--ink);background:#0e1b26;
+    border:1px solid var(--rule);border-radius:9px;
+    text-align:right;
+  }
+  input[type=text]::placeholder{color:#4d6478;font-weight:400}
+  .unit{position:absolute;right:14px;font-family:var(--mono);font-size:15px;color:var(--ink-dim);pointer-events:none}
+  .row{display:flex;align-items:center;gap:10px}
+  .row .block{flex:1}
+
+  .verdict{min-height:66px;font-size:15px;line-height:1.45;color:var(--ink-dim)}
+  .verdict.good{color:var(--good)}
+  .verdict.bad{color:var(--bad)}
+  .verdict .num{font-family:var(--mono);font-weight:600}
+
+  .score{font-family:var(--mono);font-size:15px;color:var(--ink-dim);white-space:nowrap}
+
+  .opts{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--ink-dim);line-height:1.35;cursor:pointer}
+  .opts input{accent-color:var(--amber);width:16px;height:16px;flex:none;margin-top:1px}
+
+  /* walkthrough */
+  .walk{
+    padding:13px 14px;
+    background:#0e1b26;border:1px solid var(--rule);border-left:3px solid var(--amber);
+    border-radius:11px;display:none;
+  }
+  .walk.open{display:block}
+  .walk-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .walk-step{font-size:13px;color:var(--amber);font-family:var(--mono)}
+  .walk-title{font-size:17px;font-weight:600;margin:6px 0 4px;line-height:1.3}
+  .walk-body{color:#c3d3df;font-size:14px;line-height:1.5}
+  .sum{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px;font-family:var(--mono);font-size:16px}
+  .chip{padding:4px 9px;border-radius:7px;background:var(--panel);border:1px solid var(--rule);color:var(--ink-dim)}
+  .chip.lit{border-color:var(--amber);color:var(--amber)}
+  .chip.total{background:var(--amber);border-color:var(--amber);color:#241c05;font-weight:700}
+  .walk-nav{display:flex;gap:8px}
+  .walk-nav button{padding:7px 13px;font-size:14px}
+
+  .note{font-size:13px;color:var(--ink-dim);border-top:1px solid var(--rule);padding-top:10px;margin-top:2px}
+  .note summary{cursor:pointer;color:#b9cbd9;font-size:14px}
+  .note p{margin:8px 0 0;line-height:1.5}
+  .note b{color:#b9cbd9;font-weight:600}
+
+  /* svg helpers */
+  .engrave{fill:var(--engrave)}
+  .tick{stroke:var(--engrave);stroke-linecap:butt}
+  .num-s{font-family:var(--mono);font-weight:600;fill:var(--engrave)}
+  .callout{font-family:var(--sans);font-size:15px;fill:var(--ink-dim)}
+  .engraved{font-family:var(--sans);font-weight:500}
+  .lead{stroke:#4a6379;stroke-width:1}
+  .hl{fill:none;stroke:var(--amber);stroke-width:3;rx:7;opacity:0}
+  .hl.on{opacity:1;animation:pulse 1.5s ease-in-out infinite}
+  .hlfill{fill:var(--amber);opacity:0}
+  .hlfill.on{opacity:.14}
+  @keyframes pulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.35}}
+  .guide{stroke:var(--amber);stroke-width:2.5;stroke-dasharray:7 6;opacity:0}
+  .guide.on{opacity:1}
+
+  @media (max-width:720px){
+    .wrap{padding:16px 12px 40px}
+    h1{font-size:20px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .hl.on{animation:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Reading a micrometer screw gauge</h1>
+    <div class="brand"><b>Dr Pop's Enriched Revision</b> · Cambridge 9702 / IGCSE</div>
+  </header>
+
+  <div class="layout">
+  <div class="stage">
+    <!-- ============ whole instrument ============ -->
+    <svg id="tool" viewBox="0 0 1000 250" role="img" aria-label="Diagram of a micrometer screw gauge">
+      <defs>
+        <linearGradient id="gFrame" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#59636f"/><stop offset="35%" stop-color="#3a444f"/>
+          <stop offset="100%" stop-color="#232b34"/>
+        </linearGradient>
+        <linearGradient id="gSteelH" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8d97a4"/><stop offset="16%" stop-color="var(--steel-hi)"/>
+          <stop offset="46%" stop-color="var(--steel-mid)"/><stop offset="78%" stop-color="#8b95a2"/>
+          <stop offset="100%" stop-color="var(--steel-lo)"/>
+        </linearGradient>
+        <linearGradient id="gThimble" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#6d7784"/><stop offset="14%" stop-color="#e9f0f6"/>
+          <stop offset="44%" stop-color="#bcc6d2"/><stop offset="76%" stop-color="#7d8794"/>
+          <stop offset="100%" stop-color="#4b535f"/>
+        </linearGradient>
+        <linearGradient id="gWork" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f7d67e"/><stop offset="40%" stop-color="#e0a92f"/>
+          <stop offset="100%" stop-color="#a97a12"/>
+        </linearGradient>
+      </defs>
+
+      <!-- C frame -->
+      <path d="M150,62 h58 v96 h292 V62 h58 v144 q0,26 -26,26 H176 q-26,0 -26,-26 Z" fill="url(#gFrame)"/>
+      <text class="engraved" x="354" text-anchor="middle" font-size="13.5" fill="#8a97a5" letter-spacing="1">
+        <tspan x="354" y="200">DR POP's Virtual μmeter</tspan>
+        <tspan x="354" dy="16">0–25 mm · 0.01 mm</tspan>
+      </text>
+
+      <!-- anvil -->
+      <rect x="208" y="92" width="42" height="32" fill="url(#gSteelH)"/>
+      <rect x="244" y="92" width="6" height="32" fill="#39424d"/>
+
+      <!-- workpiece -->
+      <rect id="work" x="250" y="82" width="0" height="52" rx="5" fill="url(#gWork)"/>
+
+      <!-- spindle -->
+      <g id="spindle">
+        <rect x="0" y="96" width="380" height="26" fill="url(#gSteelH)"/>
+        <rect x="0" y="96" width="6" height="26" fill="#39424d"/>
+      </g>
+
+      <!-- sleeve -->
+      <rect x="545" y="80" width="200" height="58" rx="6" fill="url(#gSteelH)"/>
+      <line x1="556" y1="109" x2="745" y2="109" stroke="var(--engrave)" stroke-width="2"/>
+      <g id="toolTicks" stroke="var(--engrave)" stroke-width="1.6"></g>
+
+      <!-- thimble + ratchet -->
+      <g id="thimble">
+        <rect x="0" y="62" width="200" height="94" rx="7" fill="url(#gThimble)"/>
+        <rect x="196" y="76" width="40" height="66" rx="9" fill="url(#gSteelH)"/>
+        <g id="toolKnurl" stroke="#5f6a77" stroke-width="1.4" opacity=".5"></g>
+        <line class="lead" x1="96" y1="160" x2="96" y2="176"/>
+        <text class="callout" x="96" y="194" text-anchor="middle">thimble</text>
+      </g>
+
+      <!-- callouts -->
+      <line class="lead" x1="228" y1="52" x2="228" y2="90"/>
+      <text class="callout" x="228" y="42" text-anchor="middle">anvil</text>
+      <line class="lead" x1="470" y1="52" x2="470" y2="94"/>
+      <text class="callout" x="470" y="42" text-anchor="middle">spindle</text>
+      <line class="lead" x1="552" y1="164" x2="552" y2="140"/>
+      <text class="callout" x="552" y="182" text-anchor="middle">sleeve</text>
+    </svg>
+
+    <!-- ============ reading view ============ -->
+    <svg id="read" viewBox="0 0 1000 348" role="img" aria-label="Close-up of the micrometer sleeve and thimble scales">
+      <defs>
+        <clipPath id="clipPanel"><rect x="0" y="0" width="1000" height="348"/></clipPath>
+        <linearGradient id="gSleeveBig" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#79838f"/><stop offset="9%" stop-color="#f2f6fa"/>
+          <stop offset="38%" stop-color="#ccd5df"/><stop offset="72%" stop-color="#98a2af"/>
+          <stop offset="100%" stop-color="#5d6673"/>
+        </linearGradient>
+        <linearGradient id="gThimbleBig" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#4f5865"/><stop offset="8%" stop-color="#98a2af"/>
+          <stop offset="20%" stop-color="#f0f5f9"/><stop offset="46%" stop-color="#c2ccd8"/>
+          <stop offset="74%" stop-color="#8b95a2"/><stop offset="92%" stop-color="#5b6472"/>
+          <stop offset="100%" stop-color="#3f4753"/>
+        </linearGradient>
+        <linearGradient id="gBevel" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+
+      <g clip-path="url(#clipPanel)">
+        <!-- sleeve barrel (slides) -->
+        <g id="sleeveCam">
+          <rect x="-2400" y="88" width="5200" height="168" fill="url(#gSleeveBig)"/>
+          <g id="sleeveScale"></g>
+        </g>
+        <!-- datum line -->
+        <line id="datum" x1="0" y1="172" x2="600" y2="172" stroke="var(--engrave)" stroke-width="3.2"/>
+
+        <!-- thimble (slides + spins) -->
+        <g id="thimbleCam">
+          <path d="M0,54 L46,44 L1000,44 L1000,300 L46,300 L0,290 Z" fill="url(#gThimbleBig)"/>
+          <path d="M0,54 L46,44 L46,300 L0,290 Z" fill="url(#gBevel)"/>
+          <line x1="46" y1="44" x2="46" y2="300" stroke="#6c7683" stroke-width="1.5" opacity=".7"/>
+          <g id="thimbleMarks" stroke="var(--engrave)" stroke-width="3" stroke-linecap="round"></g>
+          <g id="thimbleNums"></g>
+        </g>
+
+        <g id="hlSleeve">
+          <rect id="hlMmFill" class="hlfill" x="0" y="0" width="0" height="0" rx="6"/>
+          <rect id="hlMm" class="hl" x="0" y="0" width="0" height="0"/>
+          <rect id="hlHalfFill" class="hlfill" x="0" y="0" width="0" height="0" rx="6"/>
+          <rect id="hlHalf" class="hl" x="0" y="0" width="0" height="0"/>
+        </g>
+        <line id="guideLine" class="guide" x1="0" y1="172" x2="1000" y2="172"/>
+        <rect id="hlThimbFill" class="hlfill" x="0" y="0" width="0" height="0" rx="6"/>
+        <rect id="hlThimb" class="hl" x="0" y="0" width="0" height="0"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ============ controls ============ -->
+  <aside class="panel">
+    <button id="btnNew" class="primary block"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>New reading</button>
+
+    <div class="lbl">Your reading</div>
+    <div class="field">
+      <input type="text" id="answer" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-label="Your reading in millimetres">
+      <span class="unit">mm</span>
+    </div>
+    <div class="row">
+      <button id="btnCheck" class="block">Check</button>
+      <span class="score" id="score">0 / 0</span>
+    </div>
+
+    <div class="verdict" id="verdict">Press <b>New reading</b>, then type what the micrometer reads.</div>
+
+    <button id="btnWalk" class="block">Show me how</button>
+
+    <!-- walkthrough -->
+    <div class="walk" id="walk">
+      <div class="walk-head">
+        <div class="walk-step" id="wStep">Step 1 of 4</div>
+        <div class="walk-nav">
+          <button id="wPrev">Back</button>
+          <button id="wNext">Next</button>
+          <button id="wClose">Close</button>
+        </div>
+      </div>
+      <div class="walk-title" id="wTitle"></div>
+      <div class="walk-body" id="wBody"></div>
+      <div class="sum" id="wSum"></div>
+    </div>
+
+    <label class="opts"><input type="checkbox" id="optHard"> Include tricky near-zero thimble readings</label>
+
+    <details class="note">
+      <summary>How the scale works</summary>
+      <p>One full turn of the thimble moves the spindle <b>0.50 mm</b>, and the thimble is divided into 50 parts, so one thimble division is <b>0.01 mm</b>. The marks below the datum line are the half-millimetre marks. If one of them is showing, add 0.50 mm.</p>
+    </details>
+  </aside>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(s){ return document.querySelector(s); };
+
+  /* ---------- geometry (reading view) ---------- */
+  var PPM = 71;          // pixels per millimetre on the sleeve
+  var CY  = 172;         // datum line height
+  var R   = 128;         // thimble drum radius
+  var RM  = R - 14;      // radius the graduations sit on
+  var EDGE_PARK = 674;   // where the thimble edge settles once the camera follows
+  var MAXMM = 25;
+
+  /* ---------- geometry (tool view) ---------- */
+  var IPPM = 7, ANVIL = 250, SLEEVE0 = 560;
+
+  /* ---------- build the sleeve scale ---------- */
+  (function(){
+    var s = '';
+    for (var m = 0; m <= MAXMM; m++){
+      var x = m * PPM, big = (m % 5 === 0);
+      s += '<line class="tick" x1="'+x+'" y1="'+(CY-3)+'" x2="'+x+'" y2="'+(CY-(big?48:36))+'" stroke-width="'+(big?3.4:2.4)+'"/>';
+      if (big) s += '<text class="num-s" x="'+x+'" y="'+(CY-58)+'" text-anchor="middle" font-size="26">'+m+'</text>';
+      if (m < MAXMM){
+        var xh = x + PPM/2;
+        s += '<line class="tick" x1="'+xh+'" y1="'+(CY+3)+'" x2="'+xh+'" y2="'+(CY+36)+'" stroke-width="2.4"/>';
+      }
+    }
+    $('#sleeveScale').innerHTML = s;
+  })();
+
+  /* ---------- build the thimble drum ---------- */
+  var marks = [], nums = [];
+  (function(){
+    var gM = $('#thimbleMarks'), gN = $('#thimbleNums'), i, el;
+    for (i = 0; i < 50; i++){
+      el = document.createElementNS('http://www.w3.org/2000/svg','line');
+      el.setAttribute('x1', i % 5 === 0 ? 10 : 14);
+      el.setAttribute('x2', i % 5 === 0 ? 62 : 46);
+      gM.appendChild(el); marks.push(el);
+      if (i % 5 === 0){
+        el = document.createElementNS('http://www.w3.org/2000/svg','text');
+        el.setAttribute('x', 76);
+        el.setAttribute('class','num-s');
+        el.setAttribute('font-size','26');
+        el.setAttribute('dy','0.35em');
+        el.textContent = i;
+        gN.appendChild(el); nums.push({el:el, i:i});
+      }
+    }
+  })();
+
+  /* ---------- small tool-view ticks + knurling ---------- */
+  (function(){
+    var s = '', m;
+    for (m = 0; m <= MAXMM; m++){
+      var x = SLEEVE0 + m*IPPM;
+      s += '<line x1="'+x+'" y1="106" x2="'+x+'" y2="'+(m%5===0?92:97)+'"/>';
+    }
+    $('#toolTicks').innerHTML = s;
+    s = '';
+    for (m = 0; m < 14; m++) s += '<line x1="'+(112+m*6)+'" y1="72" x2="'+(112+m*6)+'" y2="146"/>';
+    $('#toolKnurl').innerHTML = s;
+  })();
+
+  /* ---------- state ---------- */
+  var target = { mm:0, half:0, t:0 };
+  var value = 0, animating = false, answered = false, shown = false;
+  var correct = 0, attempts = 0, tries = 0, lastKey = -1;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function targetValue(){ return target.mm + 0.5*target.half + target.t/100; }
+
+  /* ---------- rendering ---------- */
+  var elSleeveCam = $('#sleeveCam'), elThimbCam = $('#thimbleCam'), elDatum = $('#datum');
+  var elWork = $('#work'), elSpindle = $('#spindle'), elToolThimble = $('#thimble');
+  var edgeX = 0, camX = 0;
+
+  function render(reading, speed){
+    var w0 = Math.max(-1.2, reading - 9.5);
+    camX = -w0 * PPM;
+    edgeX = camX + reading * PPM;
+
+    elSleeveCam.setAttribute('transform','translate('+camX.toFixed(2)+',0)');
+    elThimbCam.setAttribute('transform','translate('+edgeX.toFixed(2)+',0)');
+    elDatum.setAttribute('x2', (edgeX + 4).toFixed(2));
+
+    /* drum rotation: 1 turn = 0.5 mm */
+    var frac = (reading / 0.5) % 1;
+    if (frac < 0) frac += 1;
+    var T = frac * 50;
+    var blur = Math.max(0.05, Math.min(1, 1 - (speed / 0.5) * 9));
+
+    for (var i = 0; i < 50; i++){
+      var d = ((i - T + 75) % 50) - 25;          // -25 .. +25
+      var a = 2 * Math.PI * d / 50;
+      var depth = Math.cos(a);
+      var y = CY + RM * Math.sin(a);
+      var m = marks[i];
+      if (depth <= 0.04){ m.setAttribute('opacity', 0); }
+      else {
+        m.setAttribute('y1', y.toFixed(2));
+        m.setAttribute('y2', y.toFixed(2));
+        m.setAttribute('opacity', (Math.min(1,(depth-0.04)*3.4) * blur).toFixed(3));
+      }
+    }
+    for (var k = 0; k < nums.length; k++){
+      var n = nums[k];
+      var dn = ((n.i - T + 75) % 50) - 25;
+      var an = 2 * Math.PI * dn / 50;
+      var dp = Math.cos(an);
+      var t = n.el;
+      if (dp <= 0.55){ t.setAttribute('opacity', 0); }
+      else {
+        t.setAttribute('y', (CY + RM * Math.sin(an)).toFixed(2));
+        t.setAttribute('opacity', (Math.min(1,(dp-0.55)*5) * blur).toFixed(3));
+      }
+    }
+
+    /* small tool view */
+    var face = ANVIL + reading * IPPM;
+    elWork.setAttribute('width', Math.max(0, reading * IPPM).toFixed(2));
+    elSpindle.setAttribute('transform','translate('+face.toFixed(2)+',0)');
+    elToolThimble.setAttribute('transform','translate('+(SLEEVE0 + reading*IPPM).toFixed(2)+',0)');
+  }
+
+  /* ---------- animation ---------- */
+  function easeInOutQuint(t){ return t < 0.5 ? 16*t*t*t*t*t : 1 - Math.pow(-2*t+2, 5)/2; }
+
+  function runAnim(to, dur){
+    var from = value, delta = to - from;
+    if (reduce || Math.abs(delta) < 0.0005){ value = to; render(to, 0); animating = false; return; }
+    animating = true;
+    var t0 = null, prev = from;
+    function frame(ts){
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      var v = from + delta * easeInOutQuint(p);
+      render(v, Math.abs(v - prev));
+      prev = v; value = v;
+      if (p < 1) requestAnimationFrame(frame);
+      else { value = to; render(to, 0); animating = false; }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- new reading ---------- */
+  function newReading(){
+    closeWalk();
+    var hard = $('#optHard').checked, mm, half, t, key, guard = 0;
+    do {
+      mm = 1 + Math.floor(Math.random() * 22);          // 1 .. 22
+      half = Math.random() < 0.5 ? 1 : 0;
+      t = hard ? Math.floor(Math.random() * 50) : 8 + Math.floor(Math.random() * 35);
+      key = mm * 1000 + half * 100 + t;
+      guard++;
+    } while (key === lastKey && guard < 20);
+    lastKey = key;
+    target = { mm:mm, half:half, t:t };
+    answered = false; shown = false; tries = 0;
+    $('#answer').value = '';
+    $('#answer').disabled = false;
+    $('#btnCheck').disabled = false;
+    setVerdict('What does the micrometer read?', '');
+    runAnim(targetValue(), 2100);
+    setTimeout(function(){ $('#answer').focus(); }, 60);
+  }
+
+  /* ---------- checking ---------- */
+  function setVerdict(msg, cls){
+    var v = $('#verdict');
+    v.className = 'verdict' + (cls ? ' ' + cls : '');
+    v.innerHTML = msg;
+  }
+  function fmt(x){ return x.toFixed(2); }
+
+  function check(){
+    if (animating) return;
+    var raw = $('#answer').value.trim().toLowerCase().replace(/mm$/,'').replace(',', '.').trim();
+    if (raw === ''){ setVerdict('Type a reading in millimetres first, for example <span class="num">7.42</span>.',''); return; }
+    var user = parseFloat(raw);
+    if (isNaN(user)){ setVerdict('That is not a number. Use a decimal like <span class="num">7.42</span>.','bad'); return; }
+
+    var actual = targetValue();
+    var ad = Math.abs(user - actual);
+
+    if (tries === 0 && !shown) attempts++;
+    tries++;
+
+    if (ad < 0.005){
+      if (tries === 1 && !shown) correct++;
+      answered = true;
+      updateScore();
+      setVerdict('Correct — <span class="num">' + fmt(actual) + ' mm</span>.' +
+                 (tries > 1 ? ' Worth noting which part you had to fix.' : '') +
+                 ' Press <b>New reading</b> for another.', 'good');
+      $('#btnCheck').disabled = true;
+      $('#answer').disabled = true;
+      return;
+    }
+    updateScore();
+
+    var frac = ad % 1, msg;
+    if (Math.abs(frac - 0.5) < 0.006){
+      msg = 'Your thimble figure is right. Check the marks <b>below</b> the datum line — a half-millimetre step is being handled wrongly.';
+    } else if (frac < 0.006 || frac > 0.994){
+      msg = 'Your thimble figure is right, but the whole millimetres are not. Count the marks above the datum line again, up to the edge of the thimble.';
+    } else if (ad <= 0.055){
+      msg = 'The sleeve part is right. Look again at which thimble mark lines up with the datum line — you are one or two divisions out.';
+    } else {
+      msg = 'Not right yet. Build it in three parts: whole millimetres, then any half-millimetre mark, then the thimble.';
+    }
+    if (tries >= 3) msg += ' Press <b>Show me how</b> to see it worked through.';
+    setVerdict(msg + ' <b>Try again.</b>', 'bad');
+    $('#answer').select();
+  }
+
+  function updateScore(){ $('#score').textContent = correct + ' / ' + attempts; }
+
+  /* ---------- walkthrough ---------- */
+  var step = 0, walkOpen = false;
+  var hlMm = $('#hlMm'), hlMmF = $('#hlMmFill'), hlHalf = $('#hlHalf'), hlHalfF = $('#hlHalfFill');
+  var hlTh = $('#hlThimb'), hlThF = $('#hlThimbFill'), guide = $('#guideLine');
+
+  function box(rect, fill, x, y, w, h){
+    [rect, fill].forEach(function(e){
+      e.setAttribute('x', x.toFixed(1)); e.setAttribute('y', y.toFixed(1));
+      e.setAttribute('width', w.toFixed(1)); e.setAttribute('height', h.toFixed(1));
+      e.setAttribute('rx', 7);
+    });
+  }
+  function lit(on, rect, fill){
+    rect.classList.toggle('on', on);
+    fill.classList.toggle('on', on);
+  }
+
+  var steps = [
+    {
+      title: 'Read the sleeve up to the edge of the thimble',
+      body: function(){
+        return 'The thimble has uncovered the marks above the datum line as far as <b>' + target.mm +
+               '</b>. Each of those marks is 1 mm. Take the last one you can see completely — never the one still hidden.';
+      }
+    },
+    {
+      title: 'Look below the datum line for a half-millimetre mark',
+      body: function(){
+        return target.half
+          ? 'A mark below the line <b>is</b> showing, so the spindle has gone past ' + target.mm +
+            ' mm by another <b>0.50 mm</b>. This is the step most marks are lost on.'
+          : 'No mark below the line is uncovered here, so there is nothing to add. Check this every time — the marks below the line are half-millimetres, not millimetres.';
+      }
+    },
+    {
+      title: 'Read the thimble against the datum line',
+      body: function(){
+        return 'The thimble mark sitting on the datum line is <b>' + target.t + '</b>. One turn moves the spindle 0.50 mm and the thimble has 50 divisions, so each division is 0.01 mm: ' +
+               target.t + ' × 0.01 = <b>' + (target.t/100).toFixed(2) + ' mm</b>.';
+      }
+    },
+    {
+      title: 'Add the three parts together',
+      body: function(){
+        return 'Always give a micrometer reading to <b>two decimal places</b>, even when the last digit is a zero.';
+      }
+    }
+  ];
+
+  function renderSum(){
+    var parts = [];
+    parts.push('<span class="chip'+(step>=0?' lit':'')+'">'+target.mm.toFixed(2)+'</span>');
+    parts.push('<span>+</span>');
+    parts.push('<span class="chip'+(step>=1?' lit':'')+'">'+(0.5*target.half).toFixed(2)+'</span>');
+    parts.push('<span>+</span>');
+    parts.push('<span class="chip'+(step>=2?' lit':'')+'">'+(target.t/100).toFixed(2)+'</span>');
+    if (step >= 3){
+      parts.push('<span>=</span>');
+      parts.push('<span class="chip total">'+fmt(targetValue())+' mm</span>');
+    }
+    $('#wSum').innerHTML = parts.join(' ');
+  }
+
+  function showStep(n){
+    step = Math.max(0, Math.min(3, n));
+    $('#wStep').textContent = 'Step ' + (step+1) + ' of 4';
+    $('#wTitle').textContent = steps[step].title;
+    $('#wBody').innerHTML = steps[step].body();
+    $('#wPrev').disabled = (step === 0);
+    $('#wNext').disabled = (step === 3);
+    renderSum();
+
+    var mmX = camX + target.mm * PPM;
+    var halfX = camX + (target.mm + 0.5) * PPM;
+
+    box(hlMm, hlMmF, mmX - 18, CY - 90, 36, 96);
+    if (target.half) box(hlHalf, hlHalfF, halfX - 17, CY - 2, 34, 46);
+    else box(hlHalf, hlHalfF, mmX + 6, CY - 2, Math.max(20, edgeX - mmX - 8), 46);
+    box(hlTh, hlThF, edgeX + 4, CY - 17, 116, 34);
+
+    lit(step === 0 || step === 3, hlMm, hlMmF);
+    lit(step === 1 || step === 3, hlHalf, hlHalfF);
+    lit(step === 2 || step === 3, hlTh, hlThF);
+    guide.classList.toggle('on', step === 2 || step === 3);
+    guide.setAttribute('x1', edgeX);
+    guide.setAttribute('x2', edgeX + 240);
+  }
+
+  function openWalk(){
+    if (animating) return;
+    if (!answered) { shown = true; }
+    walkOpen = true;
+    $('#walk').classList.add('open');
+    $('#btnCheck').disabled = true;
+    $('#answer').disabled = true;
+    showStep(0);
+    $('#walk').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'nearest'});
+  }
+  function closeWalk(){
+    walkOpen = false;
+    $('#walk').classList.remove('open');
+    lit(false, hlMm, hlMmF); lit(false, hlHalf, hlHalfF); lit(false, hlTh, hlThF);
+    guide.classList.remove('on');
+  }
+
+  /* ---------- wiring ---------- */
+  $('#btnNew').addEventListener('click', newReading);
+  $('#btnCheck').addEventListener('click', check);
+  $('#btnWalk').addEventListener('click', function(){ walkOpen ? closeWalk() : openWalk(); });
+  $('#wNext').addEventListener('click', function(){ showStep(step+1); });
+  $('#wPrev').addEventListener('click', function(){ showStep(step-1); });
+  $('#wClose').addEventListener('click', closeWalk);
+  $('#answer').addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ answered || shown ? newReading() : check(); }
+  });
+  window.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && document.activeElement !== $('#answer') && (answered || shown)) newReading();
+  });
+
+  /* first run */
+  render(0, 0);
+  setTimeout(newReading, 350);
+})();
+</script>
+</body>
+</html>
