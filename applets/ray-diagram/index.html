@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ray diagrams for lenses — Dr Pop's Enriched Revision</title>
+<style>
+  :root{
+    --card:#ffffff;
+    --ink:#16324e;
+    --dim:#5f7d9b;
+    --line:#d7e5f2;
+    --accent:#2a7fd4;
+    --accent-soft:#e3f0fd;
+
+    --par:#ef6c1a;
+    --cen:#0ca678;
+    --foc:#7b4cea;
+    --obj:#1f6fd0;
+    --img:#e0508f;
+    --focal:#d98600;
+
+    --quiz-bg:#fff6e7;
+    --quiz-line:#eedcb6;
+    --quiz-ink:#5a4526;
+
+    --good:#2f9e44;
+    --good-soft:#e8f7ec;
+    --bad:#e03131;
+    --bad-soft:#fdeceb;
+
+    --sans:"Nunito","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:linear-gradient(180deg,#f7fbff 0%,#e6eff9 45%,#e2ecf7 100%);
+    background-attachment:fixed;
+    color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:22px 20px 56px}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.015em;margin:0}
+  .brand{font-size:13.5px;color:var(--dim)}
+  .brand b{font-weight:700;color:#3d6689}
+
+  .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
+  @media (min-width:980px){ .layout{grid-template-columns:minmax(0,1fr) 328px} }
+  @media (min-width:1180px){ .layout{grid-template-columns:minmax(0,1fr) 356px} }
+  .main{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+  .stage{
+    background:var(--card);border:1px solid var(--line);border-radius:20px;
+    padding:10px 12px 6px;box-shadow:0 10px 26px rgba(31,76,122,.09);
+  }
+  .stage svg{display:block;width:100%;height:auto;touch-action:none}
+
+  .controls{
+    background:linear-gradient(180deg,#2c4f74 0%,#20395a 100%);
+    border:1px solid #17304a;border-radius:20px;
+    padding:14px;box-shadow:0 12px 30px rgba(20,45,75,.26);
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .ctrl-row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .ctrl-row .spacer{flex:1 1 auto}
+  .ctrl-lbl{font-size:12.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#93b6d6}
+
+  .controls button{background:#f3f8fd;border-color:#cfe0ef;color:#16324e}
+  .controls button:hover:not(:disabled){background:#ffffff;border-color:#ffffff}
+  .controls #btnReplay{font-size:15.5px;padding:11px 18px}
+  .controls .seg{border-color:#5b80a8;background:rgba(255,255,255,.08)}
+  .controls .seg button{background:transparent;color:#dceaf6}
+  .controls .seg button + button{border-left-color:#5b80a8}
+  .controls .seg button:hover:not(.sel){background:rgba(255,255,255,.15);border-color:transparent}
+  .controls .seg button.sel{background:#ffffff;color:#16324e}
+  .controls details.fold{background:rgba(255,255,255,.07);border-color:#4d719a}
+  .controls details.fold > summary{color:#d3e5f5}
+  .controls details.fold > summary::after{color:#9fbdd8}
+  .controls .zone{color:#e0ecf7}
+  .controls .zone input{accent-color:#ffb020}
+  .controls .hintline{color:#a9c6de}
+  .controls .hintline b{color:#e6f1fa}
+  .controls details.fold ul{color:#bcd4e8}
+  .controls details.fold ul b{color:#eaf3fb}
+  .controls input[type=range]{accent-color:#ffb020}
+  .controls .val{color:#ffcf72}
+  .controls button.primary{background:#ffb020;border-color:#ffb020;color:#3d2a00}
+  .controls button.primary:hover:not(:disabled){background:#ffc247;border-color:#ffc247}
+
+  button{
+    font:inherit;font-size:14.5px;font-weight:600;color:var(--ink);background:#f3f8fd;
+    border:1.5px solid var(--line);border-radius:11px;padding:9px 13px;cursor:pointer;
+    transition:background .14s ease,border-color .14s ease,color .14s ease;
+  }
+  button:hover:not(:disabled){background:var(--accent-soft);border-color:#a9cdf0}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+  :focus-visible{outline:3px solid #ffc247;outline-offset:2px}
+  .seg{display:flex;border:1.5px solid var(--line);border-radius:11px;overflow:hidden}
+  .seg button{border:0;border-radius:0;background:transparent}
+  .seg button + button{border-left:1.5px solid var(--line)}
+  .seg button.sel{background:var(--accent);color:#fff}
+  .primary{background:#ffb020;border-color:#ffb020;color:#3d2a00}
+  .primary:hover:not(:disabled){background:#ffc247;border-color:#ffc247}
+  .primary svg,.ico{width:16px;height:16px;vertical-align:-3px;margin-right:6px}
+  .mini{font-size:13.5px;padding:7px 10px;border-radius:9px}
+
+  .keyrow{cursor:pointer}
+  .keyrow:hover .cardname{fill:#2a7fd4}
+  .infodot{cursor:help}
+  .idot{fill:#eaf3fb;stroke:#8fb3d4;stroke-width:1.8;transition:fill .14s ease,stroke .14s ease}
+  .infodot:hover .idot,.infodot:focus .idot{fill:#d5e9fb;stroke:#5aa4e2}
+  .iltr{font-family:var(--sans);font-weight:800;font-size:13px;fill:#5f7d9b;text-anchor:middle;pointer-events:none}
+  .svgbtn{cursor:pointer}
+  .svgbtn .btnbg{fill:#f3f8fd;stroke:#d7e5f2;stroke-width:1.5;transition:fill .14s ease,stroke .14s ease}
+  .svgbtn .btnhot{fill:#ffb020;stroke:#e0980c;stroke-width:1.5;transition:fill .14s ease,stroke .14s ease}
+  .svgbtn:hover .btnhot{fill:#ffc94a;stroke:#ffc94a}
+  .btntext.hot{fill:#3d2a00}
+  .svgbtn:hover .btnbg{fill:#e4f0fb;stroke:#a9cdf0}
+  .svgbtn .btntext{font-family:var(--sans);font-weight:700;font-size:14px;fill:#37556f}
+  .svgbtn .btnico{fill:none;stroke:#37556f;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .halo{paint-order:stroke;stroke:#fdfeff;stroke-width:3.5;stroke-linejoin:round}
+  .scale{font-family:var(--sans);font-weight:700;font-size:12.5px;fill:#9db6cc}
+  .pill{font-family:var(--sans);font-weight:800;font-size:13px}
+  .bubtext{font-family:var(--sans);font-size:14px;fill:#5a4526}
+  .bubtext .cb{font-weight:800;fill:#3d2f14}
+  .bub{animation:bubin .28s ease;cursor:pointer}
+  .bubmore{font-family:var(--sans);font-weight:700;font-size:12px;fill:#b08a3c}
+  .btntext.sm{font-size:13px}
+  .svgbtn.dis{opacity:.4;cursor:default}
+  @keyframes bubin{from{opacity:0}to{opacity:1}}
+  .cuetext{font-family:var(--sans);font-size:15px;fill:#37556f}
+  .cuetext .cb{font-weight:800;fill:#16324e}
+  .tipbg{fill:#ffffff;fill-opacity:.97;stroke:#c9dcec;stroke-width:1.5}
+  .tiptext{font-family:var(--sans);font-size:13.5px;fill:#3d5d7c}
+  .tiptext .cb{font-weight:800;fill:#16324e}
+
+  details.fold{border:1.5px solid var(--line);border-radius:13px;background:#fbfdff}
+  details.fold > summary{
+    cursor:pointer;list-style:none;padding:9px 12px;font-size:14px;font-weight:700;color:#3d6689;
+    display:flex;align-items:center;justify-content:space-between;gap:8px}
+  details.fold > summary::-webkit-details-marker{display:none}
+  details.fold > summary::after{content:"▾";font-size:21px;line-height:.7;color:var(--dim)}
+  details.fold[open] > summary::after{content:"▴";font-size:21px;line-height:.7}
+  .foldbody{padding:2px 12px 12px}
+  .zonegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px 18px}
+  .zone{display:flex;align-items:center;gap:9px;padding:3px 0;font-size:14px}
+  .zone label{flex:1;display:flex;align-items:center;gap:8px;cursor:pointer}
+  .zone input{width:17px;height:17px;accent-color:var(--accent);flex:none}
+  .slider{display:flex;align-items:center;gap:10px;margin-top:10px;max-width:340px}
+  input[type=range]{flex:1;accent-color:var(--accent);height:26px}
+  .val{font-weight:800;font-size:13.5px;color:var(--accent);min-width:52px;text-align:right}
+  .hintline{font-size:12.5px;color:var(--dim);margin:8px 0 0}
+  details.fold ul{margin:8px 0 0;padding-left:18px;font-size:13.5px;color:var(--dim);line-height:1.55}
+
+  /* ---- question panel ---- */
+  .quiz{
+    background:var(--quiz-bg);border:1.5px solid var(--quiz-line);border-radius:20px;
+    padding:16px 16px 18px;box-shadow:0 10px 26px rgba(122,92,31,.12);
+    display:flex;flex-direction:column;gap:10px;
+  }
+  @media (min-width:980px){ .quiz{position:sticky;top:18px} }
+  .qtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .qtop h2{margin:0;font-size:19px;font-weight:800;color:var(--quiz-ink)}
+  .badge{font-size:12.5px;font-weight:800;color:#8a6d3c;background:#fdefd4;border:1.5px solid var(--quiz-line);
+    border-radius:999px;padding:3px 10px;white-space:nowrap}
+  .qlede{font-size:13px;color:#8a734d;margin:-4px 0 2px}
+  .q{border:1.5px solid #d9e7f4;border-radius:13px;padding:10px 11px;background:#f1f8fd;
+     transition:background-color .28s ease,border-color .28s ease}
+  .q p{margin:0 0 8px;font-size:14px;font-weight:700;color:#4d6f8d;transition:color .28s ease}
+  .q .opts{display:flex;gap:6px}
+  .q .opts button{flex:1;padding:8px 4px;font-size:14.5px;background:#fff;border-color:#d9e7f4;
+     transition:background-color .28s ease,border-color .28s ease,color .28s ease}
+  .q .opts button:hover:not(:disabled){background:#e4f0fb;border-color:#b6d4ee}
+  .q .opts button.sel{background:#e9a020;border-color:#e9a020;color:#fff}
+  .q.ok{border-color:#a9dfbd;background:var(--good-soft);animation:pop .32s ease}
+  .q.no{border-color:#f2b8b5;background:var(--bad-soft);animation:pop .32s ease}
+  .q.ok p{color:#2c6b3c} .q.no p{color:#a53c37}
+  @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.022)}100%{transform:scale(1)}}
+  .q.ok .opts button.sel{background:var(--good);border-color:var(--good);color:#fff}
+  .q.no .opts button.sel{background:var(--bad);border-color:var(--bad);color:#fff}
+  .numrow{display:flex;align-items:center;gap:8px}
+  .numrow .mult{font-size:19px;font-weight:800;color:#4d6f8d}
+  .numrow input{flex:1;font:inherit;font-size:17px;font-weight:700;color:var(--ink);
+    background:#fff;border:1.5px solid #d9e7f4;border-radius:10px;padding:7px 11px;min-width:0;
+    transition:border-color .28s ease}
+  .numrow input::placeholder{font-weight:500;color:#9db6cc}
+  .q.ok .numrow input{border-color:#8fd3a8} .q.no .numrow input{border-color:#eda9a5}
+  .qhint{margin:8px 0 0 !important;font-size:12.5px !important;font-weight:600 !important;color:#7f9ab2 !important}
+  .q.ok .qhint,.q.no .qhint{color:inherit}
+  .qcheck{width:100%;font-size:15px;padding:11px}
+  .feedback{font-size:13.8px;line-height:1.45;color:#5a4526}
+  .feedback p{margin:0 0 6px}
+  .feedback .ok{color:var(--good);font-weight:700}
+  .feedback .no{color:var(--bad);font-weight:700}
+
+  /* ---- glossary ---- */
+  .scrim{position:fixed;inset:0;background:rgba(18,45,72,.42);display:none;place-items:center;padding:18px;z-index:90}
+  .scrim.open{display:grid}
+  .modal{background:#fff;border-radius:20px;max-width:620px;width:100%;max-height:86vh;overflow:auto;
+    padding:20px 22px 24px;box-shadow:0 24px 60px rgba(12,38,66,.35)}
+  .modal h2{margin:0;font-size:21px}
+  .mhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+  .lede{color:var(--dim);font-size:14px;margin:0 0 14px}
+  .term{border:1.5px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:9px;background:#fbfdff}
+  .term h3{margin:0 0 3px;font-size:16px}
+  .term h3 .tag{font-size:12.5px;font-weight:700;color:var(--dim);margin-left:6px}
+  .term p{margin:0;font-size:14px;color:#3d5d7c;line-height:1.5}
+  .term.flash{animation:flash 1.5s ease}
+  @keyframes flash{0%,100%{background:#fbfdff;border-color:var(--line)}25%{background:#fff4dc;border-color:#ffc247}}
+  .swatch{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:1px;margin-right:5px}
+
+  /* ---- svg ---- */
+  .glass{fill:#cfe6fb;fill-opacity:.7;stroke:#5aa4e2;stroke-width:2.5;stroke-linejoin:round}
+  .plane{stroke:#8fb3d4;stroke-width:1.6;stroke-dasharray:5 7}
+  .lab{font-family:var(--sans);font-weight:700;font-size:16px;fill:#5f7d9b}
+  .lab-f{fill:var(--focal);cursor:pointer}
+  .lab-f:hover{fill:#a86800;text-decoration:underline}
+  .tickf{stroke:var(--focal);stroke-width:2.5;stroke-linecap:round}
+  .tip{font-family:var(--sans);font-weight:700;font-size:13.5px}
+  .handle{cursor:grab}
+  .handle.drag{cursor:grabbing}
+  .handle.axis{cursor:ew-resize}
+  .handle .dot{stroke:#fff;stroke-width:3}
+  .handle .ltr{font-family:var(--sans);font-weight:800;font-size:13px;fill:#fff;pointer-events:none;text-anchor:middle}
+  .handle.out .dot{stroke-dasharray:3.5 3.5}
+  .ghostring{fill:none;stroke-width:2.5;stroke-dasharray:4 5;opacity:0}
+  .ghostring.on{opacity:.85}
+  .objhit{cursor:ew-resize;fill:none}
+  .cardname{font-family:var(--sans);font-weight:700;font-size:13px;fill:#37556f}
+  .cardstate{font-family:var(--sans);font-weight:800;font-size:12.5px}
+  .cardltr{font-family:var(--sans);font-weight:800;font-size:10.5px;fill:#fff;text-anchor:middle}
+  .march{stroke-dasharray:9 7;animation:march 1s linear infinite}
+  .flash{animation:flashline 1.15s ease-in-out infinite}
+  @keyframes flashline{0%,100%{opacity:.28}50%{opacity:1}}
+  @keyframes march{to{stroke-dashoffset:-16}}
+  .pulse{animation:pulsef 1.5s ease-in-out infinite}
+  @keyframes pulsef{0%,100%{opacity:.18;stroke-width:2}50%{opacity:.75;stroke-width:6}}
+  @media (prefers-reduced-motion:reduce){ .march,.pulse,.flash,.term.flash,.q.ok,.q.no,.bub{animation:none} }
+  @media (max-width:520px){ .wrap{padding:16px 12px 44px} h1{font-size:21px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Ray diagrams for thin lenses</h1>
+    <div class="brand"><b>Dr Pop's Enriched Revision</b> · Cambridge IGCSE Physics</div>
+  </header>
+
+  <div class="layout">
+    <div class="main">
+
+      <div class="stage">
+        <svg id="scene" viewBox="0 0 1000 584" role="img"
+             aria-label="Ray diagram: an object arrow to the left of a lens, with draggable rays">
+          <defs>
+            <clipPath id="clip"><rect x="0" y="0" width="1000" height="504" rx="12"/></clipPath>
+            <pattern id="gridS" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="translate(0,12)">
+              <path d="M20 0 V20 M0 20 H20" fill="none" stroke="#e2edf7" stroke-width="1"/>
+            </pattern>
+            <pattern id="gridL" width="100" height="100" patternUnits="userSpaceOnUse" patternTransform="translate(60,52)">
+              <path d="M100 0 V100 M0 100 H100" fill="none" stroke="#cfe1f1" stroke-width="1.3"/>
+            </pattern>
+            <linearGradient id="gObj" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stop-color="#4a97e6"/><stop offset="100%" stop-color="#1257ad"/>
+            </linearGradient>
+            <linearGradient id="gImg" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stop-color="#f07cae"/><stop offset="100%" stop-color="#cf3878"/>
+            </linearGradient>
+          </defs>
+
+          <g clip-path="url(#clip)">
+            <rect x="0" y="0" width="1000" height="504" fill="#fdfeff"/>
+            <rect x="0" y="0" width="1000" height="504" fill="url(#gridS)"/>
+            <rect x="0" y="0" width="1000" height="504" fill="url(#gridL)"/>
+            <g id="optics"></g>
+            <g id="guides"></g>
+            <g id="rayLayer"></g>
+            <g id="imgLayer"></g>
+            <g id="objLayer"></g>
+            <rect id="objHit" class="objhit" x="0" y="0" width="0" height="0" tabindex="0"
+                  fill="none" pointer-events="all" role="slider"
+                  aria-label="Object position: drag left or right"></rect>
+            <circle id="ghost" class="ghostring" r="15" fill="none"></circle>
+            <g id="handles">
+              <g class="handle" id="h-par" data-kind="in" data-r="par" tabindex="0" role="slider"
+                 aria-label="Parallel ray, arriving: drag onto the lens">
+                <circle r="19" fill="none" pointer-events="all"></circle>
+                <circle class="dot" r="12" fill="var(--par)"></circle>
+                <text class="ltr" dy="0.35em">P</text>
+              </g>
+              <g class="handle" id="h-cen" data-kind="in" data-r="cen" tabindex="0" role="slider"
+                 aria-label="Centre ray: drag onto the lens">
+                <circle r="19" fill="none" pointer-events="all"></circle>
+                <circle class="dot" r="12" fill="var(--cen)"></circle>
+                <text class="ltr" dy="0.35em">C</text>
+              </g>
+              <g class="handle axis" id="h-foc" data-kind="axis" data-r="foc" tabindex="0" role="slider"
+                 aria-label="Focal ray: drag along the axis to the principal focus">
+                <circle r="19" fill="none" pointer-events="all"></circle>
+                <circle class="dot" r="12" fill="var(--foc)"></circle>
+                <text class="ltr" dy="0.35em">F</text>
+              </g>
+              <g class="handle out" id="o-par" data-kind="out" data-r="par" tabindex="0" role="slider"
+                 aria-label="Parallel ray, after the lens: aim it">
+                <circle r="19" fill="none" pointer-events="all"></circle>
+                <circle class="dot" r="11" fill="var(--par)"></circle>
+                <text class="ltr" dy="0.35em">P</text>
+              </g>
+              <g class="handle out" id="o-foc" data-kind="out" data-r="foc" tabindex="0" role="slider"
+                 aria-label="Focal ray, after the lens: slide it parallel to the axis">
+                <circle r="19" fill="none" pointer-events="all"></circle>
+                <circle class="dot" r="11" fill="var(--foc)"></circle>
+                <text class="ltr" dy="0.35em">F</text>
+              </g>
+            </g>
+            <g id="centreHi" style="display:none">
+              <circle cx="460" cy="252" r="17" fill="none" stroke="#2a7fd4" stroke-width="3" class="pulse"/>
+              <circle cx="460" cy="252" r="6" fill="#2a7fd4"/>
+            </g>
+            <g id="card"></g>
+            <g id="svgClear" class="svgbtn" tabindex="0" role="button" aria-label="Clear all rays">
+              <rect class="btnbg" x="14" y="440" width="150" height="44" rx="12" fill="#f3f8fd" stroke="#d7e5f2" stroke-width="1.5"/>
+              <g class="btnico" transform="translate(27,453) scale(0.76)" fill="none" stroke="#37556f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8.6 20.5H21M4.4 15.4l4.2 4.2a2 2 0 0 0 2.8 0l8.2-8.2a2 2 0 0 0 0-2.8l-4.2-4.2a2 2 0 0 0-2.8 0L4.4 12.6a2 2 0 0 0 0 2.8ZM9.2 9.4l6.6 6.6"/>
+              </g>
+              <text class="btntext" x="60" y="462" dy="0.35em">Clear rays</text>
+            </g>
+            <g id="svgHow" class="svgbtn" tabindex="0" role="button" aria-label="Tutorial"></g>
+            <g id="bubble"></g>
+          </g>
+          <g id="banner"></g>
+        </svg>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Set up</span>
+          <div class="seg" id="segLens">
+            <button data-lens="convex" class="sel">Converging</button>
+            <button data-lens="concave">Diverging</button>
+          </div>
+          <button id="btnReplay" class="primary">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"
+              fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>Move the object</button>
+          <div class="spacer"></div>
+          <button id="btnRays" class="mini">Rays info</button>
+          <button id="btnWords" class="mini">Key words</button>
+        </div>
+
+        <details class="fold" id="fold">
+          <summary>Object position and focal length selector</summary>
+          <div class="foldbody">
+            <div class="zonegrid" id="zones"></div>
+            <p class="hintline">Ticked positions are the ones <b>New position</b> chooses between. Or drag the blue arrow along the axis.</p>
+            <div class="slider">
+              <input type="range" id="fSlider" min="120" max="180" step="20" value="120" aria-label="Focal length">
+              <span class="val" id="fVal">f = 6.0 cm</span>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <aside class="quiz">
+      <div class="qtop">
+        <h2>Describe the image</h2>
+        <span class="badge" id="score">0 / 0</span>
+      </div>
+      <p class="qlede">Read your finished ray diagram, then choose one answer in each row.</p>
+
+      <div class="q" data-g="kind">
+        <p>Can it be caught on a screen?</p>
+        <div class="opts">
+          <button data-v="real">Real</button>
+          <button data-v="virtual">Virtual</button>
+        </div>
+      </div>
+      <div class="q" data-g="orient">
+        <p>Which way up is it?</p>
+        <div class="opts">
+          <button data-v="upright">Upright</button>
+          <button data-v="inverted">Inverted</button>
+        </div>
+      </div>
+      <div class="q" data-g="size">
+        <p>How big is it?</p>
+        <div class="opts">
+          <button data-v="magnified">Magnified</button>
+          <button data-v="same">Same</button>
+          <button data-v="diminished">Diminished</button>
+        </div>
+      </div>
+
+      <div class="q qnum" data-g="mag">
+        <p>How many times bigger is the image?</p>
+        <div class="numrow">
+          <span class="mult">×</span>
+          <input type="text" id="magIn" inputmode="decimal" autocomplete="off"
+                 placeholder="e.g. 1.5" aria-label="Magnification">
+        </div>
+        <p class="qhint">magnification = image height &divide; object height</p>
+      </div>
+
+      <button id="btnCheck" class="primary qcheck">Check my answer</button>
+      <div class="feedback" id="feedback"></div>
+    </aside>
+  </div>
+</div>
+
+<div class="scrim" id="scrimRays" role="dialog" aria-modal="true" aria-labelledby="rTitle">
+  <div class="modal">
+    <div class="mhead">
+      <h2 id="rTitle">Rays information</h2>
+      <button id="btnCloseRays">Close</button>
+    </div>
+    <p class="lede">Every ray diagram is built from these three. Any two of them fix the image; the third is your check.</p>
+    <div class="term">
+      <h3><span class="swatch" style="background:var(--par)"></span>Parallel ray</h3>
+      <p>A ray arriving at the lens parallel to the principal axis leaves through the principal focus. For a diverging lens, it spreads out as though it came from the principal focus in front.</p>
+    </div>
+    <div class="term">
+      <h3><span class="swatch" style="background:var(--cen)"></span>Centre ray</h3>
+      <p>A ray passing through the optical centre continues straight without changing direction.</p>
+    </div>
+    <div class="term">
+      <h3><span class="swatch" style="background:var(--foc)"></span>Focal ray</h3>
+      <p>A ray passing through the principal focus in front of the lens leaves parallel to the principal axis. For a diverging lens, the ray travels towards the principal focus on the far side and leaves the lens parallel to the principal axis.</p>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal">
+    <div class="mhead">
+      <h2 id="mTitle">Key words</h2>
+      <button id="btnCloseWords">Close</button>
+    </div>
+    <p class="lede">Tap any orange label on the diagram to jump straight to its meaning.</p>
+
+    <div class="term" id="t-axis">
+      <h3>Principal axis</h3>
+      <p>The straight line through the optical centre, at right angles to the lens. Every distance in a ray diagram is measured along it, and the object always stands on it.</p>
+    </div>
+    <div class="term" id="t-centre">
+      <h3>Optical centre <span class="tag">C</span></h3>
+      <p>The exact middle of the lens. A ray that goes through it carries straight on without bending, which makes it the easiest of the three rays to draw.</p>
+    </div>
+    <div class="term" id="t-focus">
+      <h3>Principal focus <span class="tag">F</span></h3>
+      <p>For a converging lens, the point where rays that arrive parallel to the principal axis are brought together. For a diverging lens, the point they <em>appear</em> to spread out from. Every lens has one on each side, the same distance away.</p>
+    </div>
+    <div class="term" id="t-f">
+      <h3>Focal length <span class="tag">f</span></h3>
+      <p>The distance from the optical centre to the principal focus. A fatter lens bends light more, so it has a shorter focal length. Move the slider and watch the image jump.</p>
+    </div>
+    <div class="term" id="t-2f">
+      <h3>2F</h3>
+      <p>Twice the focal length from the lens. It is only a marker, not a property of the lens, but it is the boundary that decides whether the image comes out bigger or smaller than the object.</p>
+    </div>
+    <div class="term" id="t-real">
+      <h3>Real image</h3>
+      <p>The refracted rays genuinely cross, so light really arrives at that point and you can catch the image on a screen. From a single lens, a real image is always inverted.</p>
+    </div>
+    <div class="term" id="t-virtual">
+      <h3>Virtual image</h3>
+      <p>The rays leave the lens spreading apart, so they never meet. Traced backwards (the dashed lines) they seem to come from a point. Your eye sees an image there, but no screen will catch it, and it is always upright.</p>
+    </div>
+    <div class="term" id="t-mag">
+      <h3>Magnification</h3>
+      <p>Image height divided by object height. Bigger than 1 is magnified, smaller than 1 is diminished. It also equals image distance divided by object distance.</p>
+    </div>
+    <div class="term" id="t-conv">
+      <h3>Converging and diverging lenses</h3>
+      <p>A converging (convex) lens is thicker in the middle and brings parallel rays together. A diverging (concave) lens is thinner in the middle and spreads them apart, so it only ever makes small, upright, virtual images.</p>
+    </div>
+    <div class="term" id="t-rays">
+      <h3>The three standard rays</h3>
+      <p><span class="swatch" style="background:var(--par)"></span>Parallel ray &nbsp;
+         <span class="swatch" style="background:var(--cen)"></span>Centre ray &nbsp;
+         <span class="swatch" style="background:var(--foc)"></span>Focal ray<br>
+         They all start at the tip of the object. Where they meet after the lens is the tip of the image; the rest of the image simply stands on the axis below it.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $  = function(s,r){ return (r||document).querySelector(s); };
+  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+  /* world x is measured right from the lens, y up from the principal axis */
+  var X0 = 460, Y0 = 252, VW = 1000, XR = VW - X0, XL = X0, LH = 120, CM = 20;
+  var HO = 60, U_MIN = 40, U_MAX = 420;
+  var SNAP = 15, SNAPX = 17, REACH = 235;
+
+  var LENS = 'convex', f = 120, u = 360;
+  var KEYS  = ['par','cen','foc'];
+  var NAME  = { par:'Parallel ray', cen:'Centre ray', foc:'Focal ray' };
+
+  function blankRays(){
+    return {
+      par:{ y:186, snapped:false, yo:0, aimed:false, two:true  },
+      cen:{ y:126, snapped:false, yo:0, aimed:true,  two:false },
+      foc:{ fx:-55, y:0, snapped:false, yo:0, aimed:false, two:true, wrong:false }
+    };
+  }
+  var rays = blankRays();
+
+  var ZONES = [
+    { id:'in',   label:'Closer than F',    on:true  },
+    { id:'atf',  label:'Exactly at F',     on:false },
+    { id:'mid',  label:'Between F and 2F', on:true  },
+    { id:'at2f', label:'Exactly at 2F',    on:true  },
+    { id:'far',  label:'Beyond 2F',        on:true  }
+  ];
+  var lastZone = null, touched = null;
+
+  var answers = { kind:null, orient:null, size:null };
+  var checked = false, scored = false, score = { right:0, done:0 };
+
+  var svg = $('#scene'), gOptics = $('#optics'), gGuides = $('#guides'), gRays = $('#rayLayer'),
+      gImg = $('#imgLayer'), gObj = $('#objLayer'), gCard = $('#card'),
+      objHit = $('#objHit'), ghost = $('#ghost');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- optics ---------- */
+  function F(){ return LENS === 'convex' ? f : -f; }
+  function atFocus(){ return LENS === 'convex' && Math.abs(u - f) < 0.001; }
+  function focusX(){ return LENS === 'convex' ? -f : f; }   /* the focus the focal ray uses */
+  function otherX(){ return -focusX(); }
+
+  function inTarget(k){
+    if (k === 'par') return HO;
+    if (k === 'cen') return 0;
+    var d = F() - u;
+    if (Math.abs(d) < 0.001) return null;
+    var y = HO * F() / d;
+    return Math.abs(y) > LH ? null : y;      /* the ray would miss the glass */
+  }
+  /* where the line from the object tip through a point on the axis crosses the lens */
+  function hitFrom(Xc){
+    if (Math.abs(Xc + u) < 10) return null;
+    var y = HO * Xc / (Xc + u);
+    return Math.abs(y) > REACH * 1.7 ? null : y;
+  }
+  function XHpar(){ return LENS === 'convex' ? 2*f : f; }
+  function XH(k){ return k === 'foc' ? 320 : XHpar(); }
+  function outTarget(k){
+    if (k === 'foc') return inTarget('foc');
+    return HO + (-HO / F()) * XHpar();
+  }
+  function image(){
+    if (atFocus()) return { none:true };
+    var v = u * F() / (u - F());
+    return { v:v, h:-HO*v/u, real:v > 0, m:Math.abs(v/u) };
+  }
+  function truth(){
+    var im = image();
+    if (im.none) return null;
+    return {
+      kind:   im.real ? 'real' : 'virtual',
+      orient: im.h > 0 ? 'upright' : 'inverted',
+      size:   im.m > 1.02 ? 'magnified' : (im.m < 0.98 ? 'diminished' : 'same')
+    };
+  }
+  function usable(k){ return inTarget(k) !== null; }
+  function cm(px){ return (Math.abs(px)/CM).toFixed(1); }
+  function done(k){ return rays[k].snapped && (!rays[k].two || rays[k].aimed); }
+  function doneCount(){ var n=0; KEYS.forEach(function(k){ if (done(k)) n++; }); return n; }
+  var imgHTimer = null, showImgH = false;
+  function lastStep(){ return demoSteps().length - 1; }
+  function imageOn(){
+    if (image().none) return false;
+    return inDemo() ? (demoIx >= lastStep()) : allTraced();
+  }
+  function heightOn(){ return imageOn() && !inDemo() && showImgH; }
+  function allTraced(){
+    var live = KEYS.filter(usable);
+    return live.length >= 2 && live.every(done);
+  }
+  function inSnapR(){ return Math.max(6, Math.min(SNAP, Math.abs(HO)*0.42)); }
+
+  /* ---------- svg helpers ---------- */
+  function sx(X){ return X0 + X; }
+  function sy(Y){ return Y0 - Y; }
+  function W(X,Y){ return [sx(X), sy(Y)]; }
+  function seg(a,b,col,w,dash,op,cls){
+    return '<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+
+      '" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"'+
+      (dash ? ' stroke-dasharray="'+dash+'"' : '') + (op !== undefined ? ' opacity="'+op+'"' : '') +
+      (cls ? ' class="'+cls+'"' : '') + '/>';
+  }
+  function head(a,b,t,s,col){
+    var dx=b[0]-a[0], dy=b[1]-a[1], L=Math.sqrt(dx*dx+dy*dy);
+    if (L < 26) return '';
+    var ux=dx/L, uy=dy/L, px=a[0]+dx*t, py=a[1]+dy*t, nx=-uy, ny=ux;
+    return '<polygon points="'+[px+ux*s, py+uy*s]+' '+
+      [px-ux*s*0.5+nx*s*0.62, py-uy*s*0.5+ny*s*0.62]+' '+
+      [px-ux*s*0.5-nx*s*0.62, py-uy*s*0.5-ny*s*0.62]+'" fill="'+col+'"/>';
+  }
+  function arrowShape(X,Y,fill,dashed,op){
+    var x=sx(X), yb=sy(0), yt=sy(Y), len=Math.abs(yt-yb);
+    if (len < 4) return '';
+    var s=(yt>yb)?1:-1, hd=Math.min(30,len*0.45),
+        hw=Math.max(9,Math.min(16,len*0.30)), w=Math.max(3.5,Math.min(7,len*0.13)), hb=yt-s*hd;
+    return '<polygon points="'+[[x-w,yb],[x-w,hb],[x-hw,hb],[x,yt],[x+hw,hb],[x+w,hb],[x+w,yb]].join(' ')+
+      '" fill="'+fill+'" opacity="'+(op||1)+'"'+
+      (dashed ? ' stroke="#cf3878" stroke-width="2" stroke-dasharray="6 5" fill-opacity=".35"' : '')+'/>';
+  }
+
+  /* ---------- fixed optics ---------- */
+  function drawOptics(){
+    var s = seg([0,Y0],[VW,Y0],'#8fb0c9',2.2,'',1);
+    if (LENS === 'convex'){
+      s += '<path class="glass" d="M '+X0+' '+(Y0-LH)+' Q '+(X0+26)+' '+Y0+' '+X0+' '+(Y0+LH)+
+           ' Q '+(X0-26)+' '+Y0+' '+X0+' '+(Y0-LH)+' Z"/>';
+    } else {
+      s += '<path class="glass" d="M '+(X0-19)+' '+(Y0-LH)+' Q '+X0+' '+Y0+' '+(X0-19)+' '+(Y0+LH)+
+           ' L '+(X0+19)+' '+(Y0+LH)+' Q '+X0+' '+Y0+' '+(X0+19)+' '+(Y0-LH)+' Z"/>';
+    }
+    s += '<line class="plane" x1="'+X0+'" y1="10" x2="'+X0+'" y2="494"/>';
+    s += '<circle cx="'+X0+'" cy="'+Y0+'" r="3.5" fill="#3f8fd0"/>';
+
+    [[-2,'2F'],[-1,'F'],[1,'F'],[2,'2F']].forEach(function(p){
+      var x = sx(p[0]*f);
+      if (x < 26 || x > VW-26) return;
+      s += '<line class="tickf" x1="'+x+'" y1="'+(Y0-9)+'" x2="'+x+'" y2="'+(Y0+9)+'"/>';
+      s += '<text class="lab lab-f" x="'+x+'" y="'+(Y0+30)+'" text-anchor="middle" data-term="'+
+           (Math.abs(p[0])===1?'t-focus':'t-2f')+'">'+p[1]+'</text>';
+    });
+    s += '<text class="lab lab-f" x="'+(VW-16)+'" y="'+(Y0-14)+'" text-anchor="end" data-term="t-axis">principal axis</text>';
+    s += '<text class="scale halo" x="'+(VW-16)+'" y="494" text-anchor="end">1 square = 1 cm</text>';
+
+    gOptics.innerHTML = s;
+  }
+  /* ---------- animated aiming guide ---------- */
+  function focusRay(){
+    if (!inDemo()) return null;
+    var st = demoSteps()[demoIx];
+    return st ? (st.ray || null) : null;
+  }
+
+  function drawGuides(){
+    var s = '';
+    var showPar = inDemo() ? (demoIx === 1) : (rays.par.snapped && !rays.par.aimed);
+    if (showPar){
+      if (LENS === 'concave'){
+        s += seg(W(-f,0), W(0,HO), 'var(--par)', 2.4, '', .55, 'march');
+        s += '<circle cx="'+sx(-f)+'" cy="'+Y0+'" r="11" fill="none" stroke="var(--par)" class="pulse"/>';
+        s += inDemo() ? '' :
+             '<text class="tip" x="'+sx(-f)+'" y="'+(Y0-30)+'" text-anchor="middle" fill="var(--par)" opacity=".85">aim back to here</text>';
+      } else {
+        s += '<circle cx="'+sx(f)+'" cy="'+Y0+'" r="11" fill="none" stroke="var(--par)" class="pulse"/>';
+      }
+    }
+    gGuides.innerHTML = s;
+  }
+
+  /* ---------- object, rays, image ---------- */
+  /* a dimension bracket beside the arrow, with the reading on a pill just past its tip
+     so it never lands on the F and 2F labels along the axis */
+  function heightTag(X, Y, col, tint, dx){
+    var flip = sx(X) - 20 < 44;
+    var x = sx(X) + (flip ? 20 : -20), y0 = sy(0), y1 = sy(Y);
+    function dim(w, c, op){
+      return '<line x1="'+x+'" y1="'+y0+'" x2="'+x+'" y2="'+y1+'" stroke="'+c+'" stroke-width="'+w+'" stroke-linecap="round" opacity="'+op+'"/>' +
+             '<line x1="'+(x-7)+'" y1="'+y0+'" x2="'+(x+7)+'" y2="'+y0+'" stroke="'+c+'" stroke-width="'+w+'" stroke-linecap="round" opacity="'+op+'"/>' +
+             '<line x1="'+(x-7)+'" y1="'+y1+'" x2="'+(x+7)+'" y2="'+y1+'" stroke="'+c+'" stroke-width="'+w+'" stroke-linecap="round" opacity="'+op+'"/>';
+    }
+    var s = dim(6.5, '#fdfeff', 0.95) + dim(2.6, col, 1);
+    var label = cm(Y) + ' cm', pw = label.length*7.6 + 18, ph = 23;
+    var px = clamp(sx(X) - pw/2 + (dx || 0), 16, VW - 16 - pw);
+    var py = clamp(y1 + (Y > 0 ? -14 - ph/2 : 14 - ph/2), 14, 490 - ph);
+    s += '<rect x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+ph+
+         '" rx="8" fill="'+tint+'" stroke="'+col+'" stroke-width="1.5"/>';
+    s += '<text class="pill" x="'+(px + pw/2).toFixed(1)+'" y="'+(py + ph/2)+'" dy="0.35em" text-anchor="middle" fill="'+col+'">'+label+'</text>';
+    return s;
+  }
+
+  function drawObject(){
+    var x = sx(-u);
+    gObj.innerHTML = arrowShape(-u, HO, 'url(#gObj)') +
+      (inDemo() ? '' : heightTag(-u, HO, 'var(--obj)', '#eaf3fd'));
+    objHit.setAttribute('x', x-26); objHit.setAttribute('y', Y0-HO-16);
+    objHit.setAttribute('width', 52); objHit.setAttribute('height', HO+22);
+  }
+
+  function drawRays(){
+    var im = image(), tip = W(-u, HO), parts = { par:'', cen:'', foc:'' }, demoOn = inDemo();
+    var trace = demoOn && demoIx === lastStep() && !im.none && im.v < 0;
+    var flashCls = trace ? 'flash' : '';
+    function veil(x){ return trace ? '<g opacity="0.32">'+x+'</g>' : x; }
+
+    /* parallel and centre: drag onto the lens, then aim */
+    ['par','cen'].forEach(function(k){
+      var r = rays[k], col = 'var(--'+k+')', b = W(0, r.y), t = '';
+      if (!r.snapped && demoOn){ parts[k] = ''; return; }
+      if (!r.snapped){
+        t += seg(tip, b, col, 2.2, '7 8', .55);
+        t += '<circle cx="'+b[0]+'" cy="'+b[1]+'" r="3" fill="'+col+'" opacity=".5"/>';
+      } else {
+        t += veil(seg(tip, b, col, 3, '', 1) + head(tip, b, .58, 10, col));
+        if (r.two && !r.aimed){
+          if (!demoOn){
+            var g = W(XH(k), r.yo);
+            t += seg(b, g, col, 2.4, '8 8', .75) + head(b, g, .6, 9, col);
+          }
+        } else {
+          var sl = (k === 'cen') ? -HO/u : -HO/F();
+          var y0 = (k === 'cen') ? 0 : HO;
+          var e = W(XR, y0 + sl*XR);
+          t += seg(b, e, col, 3, '', 1) + head(b, e, .42, 10, col);
+          if (!im.none && im.v < 0) t += seg(b, W(im.v, y0 + sl*im.v), col, 2.6, '8 8', .85, flashCls);
+        }
+      }
+      parts[k] = t;
+    });
+
+    /* focal ray: find F on the axis, then swing the emerging ray */
+    var r = rays.foc, col = 'var(--foc)', t = '';
+    if (!r.snapped){
+      var yh = demoOn ? null : hitFrom(r.fx);
+      if (yh !== null){
+        var endX = Math.max(0, r.fx), endY = (endX === 0) ? yh : 0;
+        t += seg(tip, W(endX, endY), col, 2.2, '7 8', .55);
+      }
+    } else {
+      var b2 = W(0, r.y), inc = seg(tip, b2, col, 3, '', 1) + head(tip, b2, .58, 10, col);
+      if (LENS === 'convex' && u < f) inc += seg(W(-f,0), tip, col, 1.8, '4 7', .45);
+      t += veil(inc);
+      if (LENS === 'concave') t += seg(b2, W(f,0), col, 1.8, '4 7', .45);
+      if (!r.aimed){
+        if (!demoOn){
+          var g2 = W(XH('foc'), r.yo);
+          t += seg(b2, g2, col, 2.4, '8 8', .75) + head(b2, g2, .6, 9, col);
+        }
+      } else {
+        var e3 = W(XR, r.y);
+        t += seg(b2, e3, col, 3, '', 1) + head(b2, e3, .42, 10, col);
+        if (!im.none && im.v < 0) t += seg(b2, W(im.v, r.y), col, 2.6, '8 8', .85, flashCls);
+      }
+    }
+    parts.foc = t;
+
+    var lit = focusRay(), out = '';
+    KEYS.forEach(function(k){
+      if (!parts[k]) return;
+      out += (lit && k !== lit) ? '<g opacity="0.12">'+parts[k]+'</g>' : parts[k];
+    });
+    gRays.innerHTML = (!demoOn && showImgH) ? '<g opacity="0.4">'+out+'</g>' : out;
+  }
+
+  function drawImage(){
+    var im = image();
+    if (!imageOn()){ gImg.innerHTML = ''; return; }
+    var x = sx(im.v);
+    if (x < 14 || x > VW-14 || Math.abs(im.h) > 215){ gImg.innerHTML = ''; return; }
+    var virt = !im.real;
+    gImg.innerHTML = arrowShape(im.v, im.h, 'url(#gImg)', virt, virt ? .95 : 1) +
+      '<circle cx="'+x+'" cy="'+sy(im.h)+'" r="4.5" fill="var(--img)"/>' +
+      (heightOn() ? heightTag(im.v, im.h, 'var(--img)', '#fdeef5',
+        (Math.abs(sx(im.v) - sx(-u)) < 72 && Math.abs(sy(im.h) - sy(HO)) < 34)
+          ? (im.v > -u ? 46 : -46) : 0) : '');
+  }
+
+  /* ---------- status card in the corner of the diagram ---------- */
+  function drawCard(){
+    var s = '<rect x="14" y="12" width="228" height="140" rx="14" fill="#ffffff" fill-opacity=".92" stroke="#d7e5f2"/>';
+    KEYS.forEach(function(k, i){
+      var y = 38 + i*28, state, col;
+      if (!usable(k))                         { state = 'unavailable'; col = '#a6b8c8'; }
+      else if (!rays[k].snapped)              { state = (k === 'foc') ? 'find F' : 'drag'; col = '#8aa3bb'; }
+      else if (rays[k].two && !rays[k].aimed) { state = 'aim';  col = 'var(--focal)'; }
+      else                                    { state = '\u2713 correct'; col = 'var(--good)'; }
+      s += '<circle cx="34" cy="'+y+'" r="9" fill="var(--'+k+')"/>';
+      s += '<text class="cardltr" x="34" y="'+y+'" dy="0.35em">'+k.charAt(0).toUpperCase()+'</text>';
+      s += '<text class="cardname" x="50" y="'+y+'" dy="0.35em">'+NAME[k]+'</text>';
+      s += '<text class="cardstate" x="230" y="'+y+'" dy="0.35em" text-anchor="end" fill="'+col+'">'+state+'</text>';
+    });
+    s += '<line x1="26" y1="114" x2="230" y2="114" stroke="#e4eef7" stroke-width="1.5"/>';
+    s += '<g class="keyrow" data-term="t-centre">' +
+         '<rect x="20" y="120" width="216" height="26" rx="8" fill="none" pointer-events="all" data-term="t-centre"/>' +
+         '<circle cx="34" cy="133" r="5.5" fill="#3f8fd0" data-term="t-centre"/>' +
+         '<text class="cardname" x="50" y="133" dy="0.35em" data-term="t-centre">optical centre</text>' +
+         '<circle cx="224" cy="133" r="8.5" fill="none" stroke="#c2d8ea" stroke-width="1.5" data-term="t-centre"/>' +
+         '<text class="cardstate" x="224" y="133" dy="0.35em" text-anchor="middle" fill="#8aa3bb" data-term="t-centre">i</text></g>';
+    gCard.innerHTML = s;
+  }
+
+  var centreHi = $('#centreHi');
+  gCard.addEventListener('mouseover', function(e){
+    var on = !!(e.target.closest && e.target.closest('.keyrow'));
+    centreHi.style.display = on ? '' : 'none';
+  });
+  gCard.addEventListener('mouseleave', function(){ centreHi.style.display = 'none'; });
+
+  /* ---------- handles ---------- */
+  var HANDLES = [
+    { el:$('#h-par'), kind:'in',   k:'par' },
+    { el:$('#h-cen'), kind:'in',   k:'cen' },
+    { el:$('#h-foc'), kind:'axis', k:'foc' },
+    { el:$('#o-par'), kind:'out',  k:'par' },
+    { el:$('#o-foc'), kind:'out',  k:'foc' }
+  ];
+
+  function drawHandles(){
+    HANDLES.forEach(function(h){
+      var r = rays[h.k], show, X, Y;
+      if (h.kind === 'in')       { show = !inDemo() || r.snapped;     X = 0;         Y = r.y; }
+      else if (h.kind === 'axis'){ show = usable(h.k) && (!inDemo() || r.snapped); X = r.snapped ? focusX() : r.fx; Y = 0; }
+      else                       { show = !inDemo() && usable(h.k) && r.snapped && !r.aimed; X = XH(h.k); Y = r.yo; }
+      h.el.style.display = show ? '' : 'none';
+      var lit = focusRay();
+      h.el.setAttribute('opacity', (lit && h.k !== lit) ? '0.12' : '1');
+      if (show) h.el.setAttribute('transform', 'translate('+sx(X).toFixed(1)+','+sy(Y).toFixed(1)+')');
+    });
+  }
+
+  function moveHandle(kind, k, Y, X){
+    var r = rays[k];
+    if (inDemo()) stopDemo(false);
+    touched = k;
+    if (kind === 'in'){
+      var t = inTarget(k), R = inSnapR();
+      if (Math.abs(Y - t) < R){
+        var was = r.snapped; r.y = t;
+        if (!was){ r.snapped = true; r.yo = freshOut(k); buzz(k); }
+      } else {
+        if (r.snapped){ r.snapped = false; r.aimed = !r.two; }
+        r.y = clamp(Y, -REACH, REACH);
+      }
+      showGhost(!r.snapped && Math.abs(Y-t) < R*5, 0, t, k);
+
+    } else if (kind === 'axis'){
+      var tx = focusX(), yh = inTarget('foc');
+      if (yh === null) return;
+      r.wrong = Math.abs(X - otherX()) < SNAPX * 1.5;
+      if (Math.abs(X - tx) < SNAPX){
+        r.wrong = false;
+        if (!r.snapped){ r.snapped = true; r.y = yh; r.fx = tx; r.yo = freshOut('foc'); buzz(k); }
+      } else {
+        if (r.snapped){ r.snapped = false; r.aimed = false; }
+        r.fx = clamp(X, -XL+24, XR-24);
+      }
+      ghost.classList.toggle('on', !r.snapped && Math.abs(X - tx) < SNAPX*5);
+      ghost.setAttribute('cx', sx(tx)); ghost.setAttribute('cy', Y0);
+      ghost.setAttribute('stroke', 'var(--foc)');
+
+    } else {
+      var o = outTarget(k);
+      if (o === null || !r.snapped) return;
+      if (Math.abs(Y - o) < SNAP){
+        if (!r.aimed){ r.aimed = true; buzz(k); }
+        r.yo = o;
+      } else {
+        r.aimed = false;
+        r.yo = clamp(Y, -REACH, REACH);
+      }
+      showGhost(!r.aimed && Math.abs(Y-o) < SNAP*5, XH(k), o, k);
+    }
+    draw();
+  }
+
+  /* where the emerging ray sits before the student aims it */
+  function freshOut(k){
+    var t = outTarget(k);
+    if (t === null) return 0;
+    var y = clamp(rays[k].y + (rays[k].y - HO)/u * XH(k), -215, 215);
+    if (Math.abs(y - t) < 55) y = t + (t > 0 ? -145 : 145);
+    return clamp(y, -REACH, REACH);
+  }
+
+  function showGhost(on, X, Y, k){
+    ghost.classList.toggle('on', !!on);
+    ghost.setAttribute('cx', sx(X)); ghost.setAttribute('cy', sy(Y).toFixed(1));
+    ghost.setAttribute('stroke', 'var(--'+k+')');
+  }
+  function buzz(k){
+    if (reduce) return;
+    var d = null;
+    HANDLES.forEach(function(h){ if (h.k === k && h.el.style.display !== 'none') d = h.el.querySelector('.dot'); });
+    if (!d || !d.animate) return;
+    try { d.animate([{r:12},{r:17},{r:12}], {duration:240, easing:'ease-out'}); } catch(e){}
+  }
+
+  HANDLES.forEach(function(h){
+    h.el.addEventListener('pointerdown', function(e){
+      e.preventDefault(); h.el.setPointerCapture(e.pointerId); h.el.classList.add('drag');
+    });
+    h.el.addEventListener('pointermove', function(e){
+      if (!h.el.hasPointerCapture || !h.el.hasPointerCapture(e.pointerId)) return;
+      var p = toWorld(e);
+      moveHandle(h.kind, h.k, p.Y, p.X);
+    });
+    function end(e){
+      if (h.el.releasePointerCapture && h.el.hasPointerCapture && h.el.hasPointerCapture(e.pointerId))
+        h.el.releasePointerCapture(e.pointerId);
+      h.el.classList.remove('drag'); ghost.classList.remove('on');
+    }
+    h.el.addEventListener('pointerup', end);
+    h.el.addEventListener('pointercancel', end);
+    h.el.addEventListener('keydown', function(e){
+      var step = e.shiftKey ? 14 : 4;
+      if (h.kind === 'axis'){
+        var cx = rays.foc.snapped ? focusX() : rays.foc.fx;
+        if (e.key === 'ArrowLeft'){ moveHandle('axis','foc',0, cx-step); e.preventDefault(); }
+        if (e.key === 'ArrowRight'){ moveHandle('axis','foc',0, cx+step); e.preventDefault(); }
+        return;
+      }
+      var cur = (h.kind === 'in') ? rays[h.k].y : rays[h.k].yo;
+      if (e.key === 'ArrowUp'){ moveHandle(h.kind, h.k, cur+step); e.preventDefault(); }
+      if (e.key === 'ArrowDown'){ moveHandle(h.kind, h.k, cur-step); e.preventDefault(); }
+    });
+  });
+
+  function toWorld(e){
+    var p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+    var m = svg.getScreenCTM();
+    if (!m) return { X:0, Y:0 };
+    var q = p.matrixTransform(m.inverse());
+    return { X:q.x - X0, Y:Y0 - q.y };
+  }
+
+  /* ---------- object dragging ---------- */
+  function okU(nu){
+    if (nu < U_MIN || nu > U_MAX) return false;
+    if (LENS === 'concave') return nu*nu/(nu + f) >= 40;   /* image clear of the object */
+    if (Math.abs(nu - f) < 0.5*f) return false;            /* focal ray would miss the glass */
+    return (nu > f) ? true : nu*nu/(f - nu) >= 40;
+  }
+  function allowedU(){
+    var out = [], v;
+    for (v = U_MIN; v <= U_MAX; v += 20) if (okU(v)) out.push(v);
+    if (LENS === 'convex' && out.indexOf(f) < 0){ out.push(f); out.sort(function(a,b){ return a-b; }); }
+    return out;
+  }
+  function setU(nu){
+    if (inDemo()) stopDemo(false);
+    var list = allowedU(), best = list[0];
+    list.forEach(function(v){ if (Math.abs(v-nu) < Math.abs(best-nu)) best = v; });
+    u = best; resetAnswers(); draw();
+  }
+  objHit.addEventListener('pointerdown', function(e){ e.preventDefault(); objHit.setPointerCapture(e.pointerId); });
+  objHit.addEventListener('pointermove', function(e){
+    if (!objHit.hasPointerCapture || !objHit.hasPointerCapture(e.pointerId)) return;
+    setU(-toWorld(e).X);
+  });
+  objHit.addEventListener('pointerup', function(e){
+    if (objHit.releasePointerCapture) objHit.releasePointerCapture(e.pointerId);
+  });
+  objHit.addEventListener('keydown', function(e){
+    var step = e.shiftKey ? 20 : 6;
+    if (e.key === 'ArrowLeft'){ setU(u+step); e.preventDefault(); }
+    if (e.key === 'ArrowRight'){ setU(u-step); e.preventDefault(); }
+  });
+
+  /* ---------- cue ---------- */
+  function zoneText(){
+    var r = u / f, at = 'Object ' + cm(u) + ' cm from the lens';
+    if (LENS === 'concave') return 'Diverging lens, f = ' + cm(f) + ' cm. ' + at + '.';
+    if (atFocus()) return at + ', exactly at F.';
+    if (r < 0.99) return at + ', between the lens and F.';
+    if (r < 1.99) return at + ', between F and 2F.';
+    if (r < 2.02) return at + ', exactly at 2F.';
+    return at + ', beyond 2F.';
+  }
+
+  function aimMsg(k){
+    if (k === 'par')
+      return { s:'act', t: LENS === 'convex'
+        ? 'Now aim the <b>orange</b> ray after the lens: a ray arriving parallel to the axis leaves <b>through F</b>.'
+        : 'Now aim the <b>orange</b> ray after the lens. A diverging lens spreads it out, so it must look as if it came <b>from F in front of the lens</b> \u2014 line it up with the moving dashes.' };
+    return { s:'act', t:'The <b>violet</b> ray is carrying straight on, unbent. Swing it round until it leaves <b>parallel to the principal axis</b> \u2014 count the grid squares \u2014 and it will pass through the point where the other rays cross.' };
+  }
+  function dragMsg(k){
+    if (k === 'par') return { s:'', t:'Drag the <b>orange</b> dot along the lens until its ray runs parallel to the principal axis \u2014 level with the tip of the object.' };
+    if (k === 'cen') return { s:'', t:'Drag the <b>green</b> dot to the optical centre. That ray goes straight through without bending.' };
+    if (rays.foc.wrong)
+      return { s:'act', t: LENS === 'convex'
+        ? 'That is the focus <b>behind</b> the lens. A converging lens uses the one <b>in front</b>, on the same side as the object.'
+        : 'That is the focus <b>in front of</b> the lens. A diverging lens needs the ray aimed at the focus on the <b>far side</b>.' };
+    return { s:'', t: LENS === 'convex'
+      ? 'Slide the <b>violet F</b> marker along the axis onto the principal focus <b>in front of</b> the lens. The ray from the object tip through F then draws itself as far as the lens.'
+      : 'Slide the <b>violet F</b> marker along the axis onto the principal focus on the <b>far side</b> of the lens \u2014 a diverging lens bends a ray aimed at that point so that it leaves parallel to the axis.' };
+  }
+  function stepFor(k){
+    if (!usable(k)) return null;
+    var r = rays[k];
+    if (r.snapped && r.two && !r.aimed) return aimMsg(k);
+    if (!r.snapped) return dragMsg(k);
+    return null;
+  }
+
+  function cueText(){
+    if (inDemo())
+      return { s:'act', t:'Tutorial \u2014 read the note, then press <b>Next</b> when you are ready. Press <b>\u2715</b> to take over.' };
+    if (atFocus())
+      return { s:'', t:'The rays leave the lens parallel to each other, so <b>no image forms</b> \u2014 the image is said to be at infinity.' };
+
+    if (touched){ var mine = stepFor(touched); if (mine) return mine; }
+
+    var a = KEYS.filter(function(x){ return usable(x) && rays[x].snapped && rays[x].two && !rays[x].aimed; })[0];
+    if (a) return aimMsg(a);
+    var k = KEYS.filter(function(x){ return usable(x) && !rays[x].snapped; })[0];
+    if (k) return dragMsg(k);
+
+    if (!usable('foc'))
+      return { s:'', t:'At this object position the focal ray would strike outside the glass, so build the image from the other two.' };
+    if (!allTraced()) return { s:'', t:'Trace every ray to fix the image.' };
+
+    var im = image(), x = sx(im.v);
+    if (x < 14 || x > VW-14 || Math.abs(im.h) > 215)
+      return { s:'done', t:'The rays meet <b>beyond the edge of the diagram</b>. Follow where they are heading, then answer the questions.' };
+    return { s:'done', t:'The rays meet at the tip of the image. Now answer the questions.' };
+  }
+
+  function esc(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+  function wrapText(html, maxW, size){
+    var parts = html.split(/(<b>|<\/b>)/), bold = false, words = [];
+    parts.forEach(function(p){
+      if (p === '<b>'){ bold = true; return; }
+      if (p === '</b>'){ bold = false; return; }
+      p.split(/\s+/).forEach(function(w){
+        if (!w) return;
+        if (/^[.,;:!?)]/.test(w) && words.length){ words[words.length-1].t += w; return; }
+        words.push({ t:w, b:bold });
+      });
+    });
+    var lines = [], cur = [], w = 0, CW = size*0.545, CB = size*0.578;
+    words.forEach(function(x){
+      var ww = (x.t.length + 1) * (x.b ? CB : CW);
+      if (w + ww > maxW && cur.length){ lines.push(cur); cur = []; w = 0; }
+      cur.push(x); w += ww;
+    });
+    if (cur.length) lines.push(cur);
+    return lines;
+  }
+  function textLine(words, x, y, cls){
+    var s = '<text class="'+cls+'" x="'+x+'" y="'+y+'">';
+    words.forEach(function(w){ s += '<tspan'+(w.b ? ' class="cb"' : '')+'>'+esc(w.t)+'&#160;</tspan>'; });
+    return s + '</text>';
+  }
+
+  function drawBanner(){
+    var c = cueText();
+    var fill = c.s === 'act' ? '#fff8e8' : (c.s === 'done' ? '#eaf7ee' : '#f2f8fd');
+    var edge = c.s === 'act' ? '#ffd894' : (c.s === 'done' ? '#a9dfbd' : '#d3e6f6');
+    var txt = zoneText() + ' ' + c.t +
+      (checked ? ' <b>v = ' + Math.abs(image().v/f).toFixed(2) + 'f, magnification \u00d7' + image().m.toFixed(2) + '.</b>' : '');
+    var s = '<rect x="14" y="508" width="972" height="72" rx="14" fill="'+fill+'" stroke="'+edge+'" stroke-width="1.5"/>';
+    wrapText(txt, 900, 15).slice(0,3).forEach(function(ln, i){
+      s += textLine(ln, 30, 532 + i*19, 'cuetext');
+    });
+    $('#banner').innerHTML = s;
+  }
+
+  function drawPanel(){
+    $('#score').textContent = score.right + ' / ' + score.done;
+    var none = image().none;
+    $('#btnCheck').disabled = none;
+    $$('.q button').forEach(function(b){ b.disabled = none; });
+    $('#magIn').disabled = none;
+  }
+
+  function draw(){
+    ['par','cen'].forEach(function(k){
+      if (rays[k].snapped) rays[k].y = inTarget(k);
+      if (rays[k].two && rays[k].aimed){
+        var o = outTarget(k);
+        if (o === null) rays[k].aimed = false; else rays[k].yo = o;
+      }
+    });
+    var yh = inTarget('foc');
+    if (rays.foc.snapped){
+      if (yh === null){ rays.foc.snapped = false; rays.foc.aimed = false; }
+      else { rays.foc.y = yh; rays.foc.fx = focusX(); if (rays.foc.aimed) rays.foc.yo = yh; }
+    }
+    if (!inDemo() && allTraced() && !image().none){
+      if (!showImgH && !imgHTimer)
+        imgHTimer = setTimeout(function(){ imgHTimer = null; showImgH = true; draw(); }, 700);
+    } else {
+      if (imgHTimer){ clearTimeout(imgHTimer); imgHTimer = null; }
+      showImgH = false;
+    }
+    drawOptics(); drawGuides(); drawObject(); drawRays(); drawImage(); drawHandles();
+    drawCard(); drawHow(); drawBubble(); drawBanner(); drawPanel();
+  }
+
+  /* ---------- questions ---------- */
+  function resetAnswers(){
+    answers = { kind:null, orient:null, size:null };
+    if ($('#magIn')) $('#magIn').value = '';
+    checked = false; scored = false;
+    $$('.q').forEach(function(q){
+      q.classList.remove('ok','no');
+      $$('button', q).forEach(function(b){ b.classList.remove('sel'); });
+    });
+    $('#feedback').innerHTML = '';
+  }
+  function clearRays(){
+    rays = blankRays();
+    touched = null;
+    rays.foc.fx = -0.5 * f;
+  }
+
+  $$('.q').forEach(function(q){
+    q.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if (!b || b.disabled) return;
+      $$('button', q).forEach(function(x){ x.classList.remove('sel'); });
+      b.classList.add('sel');
+      answers[q.dataset.g] = b.dataset.v;
+    });
+  });
+
+  var WHY = {
+    real:'Real \u2014 the refracted rays intersect with each other, so the image can be caught on a screen.',
+    virtual:'Virtual \u2014 the refracted rays never intersect, so only their backward extensions meet. The image cannot be caught on a screen.',
+    upright:'Upright \u2014 the lens leaves the image the same way up as the object.',
+    inverted:'Inverted \u2014 the lens turns the image upside down.',
+    magnified:'Magnified \u2014 the image is taller than the object.',
+    diminished:'Diminished \u2014 the image is shorter than the object.',
+    same:'Same size \u2014 the image is exactly as tall as the object, which only happens at 2F.'
+  };
+
+  function readMag(txt){
+    txt = txt.replace(/[×x*]/g,'').replace(',','.').trim();
+    var fr = txt.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
+    if (fr) return +fr[2] === 0 ? null : (+fr[1] / +fr[2]);
+    var v = parseFloat(txt);
+    return isNaN(v) ? null : Math.abs(v);
+  }
+  function magWhy(im, val){
+    var hi = cm(im.h), ho = cm(HO), m = im.m.toFixed(2).replace(/0$/,'');
+    var msg = 'Magnification \u2014 the image is ' + hi + ' cm tall and the object ' + ho +
+              ' cm, so ' + hi + ' \u00f7 ' + ho + ' = <b>\u00d7' + m + '</b>. ' +
+              'The distances agree: ' + cm(im.v) + ' cm \u00f7 ' + cm(u) + ' cm.';
+    if (val !== null && Math.abs(val - 1/im.m) <= 0.06 && Math.abs(im.m - 1) > 0.06)
+      msg += ' You have divided the wrong way round \u2014 image height goes on top.';
+    return msg;
+  }
+
+  $('#btnCheck').addEventListener('click', function(){
+    var t = truth(); if (!t) return;
+    var typed = $('#magIn').value.trim();
+    if (!answers.kind || !answers.orient || !answers.size || typed === ''){
+      $('#feedback').innerHTML = '<p class="no">Answer all four rows first.</p>';
+      return;
+    }
+    var im = image(), all = true, out = '';
+    $$('.q').forEach(function(q){
+      var g = q.dataset.g, ok, why;
+      if (g === 'mag'){
+        var val = readMag(typed);
+        ok = (val !== null) && Math.abs(val - im.m) <= 0.06;
+        why = magWhy(im, val);
+      } else {
+        ok = (answers[g] === t[g]);
+        why = WHY[t[g]];
+      }
+      q.classList.toggle('ok', ok); q.classList.toggle('no', !ok);
+      if (!ok) all = false;
+      out += '<p><span class="'+(ok?'ok':'no')+'">'+(ok?'Correct.':'Not this one.')+'</span> '+why+'</p>';
+    });
+    if (!scored){ score.done++; if (all) score.right++; scored = true; }
+    checked = true;
+    $('#feedback').innerHTML = out;
+    draw();
+  });
+
+  /* ---------- zones, replay, controls ---------- */
+  (function buildZones(){
+    var s = '';
+    ZONES.forEach(function(z,i){
+      s += '<div class="zone"><label><input type="checkbox" data-i="'+i+'"'+(z.on?' checked':'')+'>'+
+           z.label+'</label><button class="mini" data-use="'+i+'">Use</button></div>';
+    });
+    $('#zones').innerHTML = s;
+  })();
+
+  $('#zones').addEventListener('change', function(e){
+    if (e.target.type === 'checkbox') ZONES[+e.target.dataset.i].on = e.target.checked;
+  });
+  function zoneList(z){
+    return allowedU().filter(function(v){
+      var r = v / f;
+      if (z.id === 'in')   return r < 0.99;
+      if (z.id === 'atf')  return Math.abs(v - f) < 1;
+      if (z.id === 'mid')  return r > 1.01 && r < 1.99;
+      if (z.id === 'at2f') return Math.abs(v - 2*f) < 1;
+      return r > 2.01;
+    });
+  }
+  $('#zones').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-use]'); if (!b) return;
+    var z = ZONES[+b.dataset.use], list = zoneList(z);
+    if (!list.length) return;
+    clearRays(); lastZone = z.id;
+    setU(list[Math.floor(list.length/2)]);
+  });
+
+  $('#btnReplay').addEventListener('click', function(){
+    var on = ZONES.filter(function(z){ return z.on && zoneList(z).length; });
+    if (!on.length) on = ZONES.filter(function(z){ return zoneList(z).length; });
+    if (!on.length) return;
+    var pool = on.length > 1 ? on.filter(function(z){ return z.id !== lastZone; }) : on;
+    var z = pool[Math.floor(Math.random()*pool.length)], list = zoneList(z);
+    lastZone = z.id;
+    clearRays();
+    setU(list[Math.floor(Math.random()*list.length)]);
+  });
+
+  function doClear(){ if (inDemo()) stopDemo(false); clearRays(); resetAnswers(); draw(); }
+  $('#svgClear').addEventListener('click', doClear);
+  $('#svgClear').addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' '){ doClear(); e.preventDefault(); }
+  });
+  $('#segLens').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    $$('button', this).forEach(function(x){ x.classList.remove('sel'); });
+    b.classList.add('sel');
+    LENS = b.dataset.lens;
+    clearRays(); resetAnswers();
+    setU(u);
+  });
+
+  $('#fSlider').addEventListener('input', function(){
+    f = parseInt(this.value, 10);
+    $('#fVal').textContent = 'f = ' + cm(f) + ' cm';
+    if (!rays.foc.snapped) rays.foc.fx = clamp(rays.foc.fx, -XL+24, XR-24);
+    setU(u);
+  });
+
+  /* ---------- step-by-step walkthrough ---------- */
+  var demoIx = -1, savedRays = null, gHow = $('#svgHow'), gBub = $('#bubble');
+  function inDemo(){ return demoIx >= 0; }
+
+  function smallBtn(x, w, label, act, off){
+    return '<g class="svgbtn'+(off ? ' dis' : '')+'"'+(off ? '' : ' data-act="'+act+'"')+'>' +
+      '<rect class="btnbg" x="'+x+'" y="19" width="'+w+'" height="28" rx="9" fill="#f3f8fd" stroke="#d7e5f2" stroke-width="1.5"/>' +
+      '<text class="btntext sm" x="'+(x + w/2)+'" y="33" dy="0.35em" text-anchor="middle">'+label+'</text></g>';
+  }
+
+  function drawHow(){
+    var s = '';
+    if (!inDemo()){
+      var w = 152, x = VW - 14 - w;
+      s += '<g class="svgbtn" data-act="start">' +
+           '<rect class="btnhot" x="'+x+'" y="12" width="'+w+'" height="42" rx="12" fill="#ffb020" stroke="#e0980c" stroke-width="1.5"/>' +
+           '<polygon points="'+(x+18)+',25 '+(x+33)+',33 '+(x+18)+',41" fill="#3d2a00"/>' +
+           '<text class="btntext hot" x="'+(x+45)+'" y="33" dy="0.35em">Tutorial</text></g>';
+    } else {
+      var n = demoSteps().length;
+      s += '<rect x="654" y="12" width="332" height="42" rx="12" fill="#ffffff" fill-opacity=".93" stroke="#d7e5f2" stroke-width="1.5"/>';
+      s += '<text class="btntext sm" x="756" y="33" dy="0.35em" text-anchor="end">Step '+(demoIx+1)+' of '+n+'</text>';
+      s += smallBtn(768, 72, 'Back', 'back', demoIx === 0);
+      s += smallBtn(848, 82, demoIx === n-1 ? 'Finish' : 'Next', 'next', false);
+      s += smallBtn(938, 38, '\u2715', 'exit', false);
+    }
+    gHow.innerHTML = s;
+  }
+
+  function drawBubble(){
+    var b = inDemo() ? demoSteps()[demoIx] : null;
+    if (!b){ gBub.innerHTML = ''; return; }
+    var lines = wrapText(b.text, 264, 14), w = 292, h = 38 + lines.length*19;
+    var ax = sx(b.at[0]), ay = sy(b.at[1]), x, y;
+    if (b.box){ x = b.box[0]; y = b.box[1]; }
+    else if (b.side === 'above'){ x = ax - w/2; y = ay - h - 22; }
+    else if (b.side === 'below'){ x = ax - w/2; y = ay + 22; }
+    else if (b.side === 'left'){ x = ax - w - 22; y = ay - h/2; }
+    else { x = ax + 22; y = ay - h/2; }
+    x = clamp(x, 16, VW - 16 - w); y = clamp(y, 14, 492 - h);
+    var bx = clamp(ax, x + 16, x + w - 16), by = clamp(ay, y + 14, y + h - 14);
+    var s = '<g class="bub" data-act="next">';
+    if (!b.noLine)
+      s += '<line x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="#e8b45a" stroke-width="2.5" stroke-dasharray="5 4"/>';
+    s += '<circle class="pulse" cx="'+ax+'" cy="'+ay+'" r="13" fill="none" stroke="#e8a33c"/>';
+    s += '<circle cx="'+ax+'" cy="'+ay+'" r="5" fill="#e8a33c"/>';
+    s += '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="14" fill="#fffdf4" stroke="#e8c77a" stroke-width="2"/>';
+    lines.forEach(function(ln, i){ s += textLine(ln, x+16, y+27+i*19, 'bubtext'); });
+    s += '<text class="bubmore" x="'+(x+w-16)+'" y="'+(y+h-12)+'" text-anchor="end">tap to continue \u203a</text>';
+    gBub.innerHTML = s + '</g>';
+  }
+
+  function demoSteps(){
+    var conv = LENS === 'convex', st = [];
+    st.push({ text:'The parallel ray travels from the tip of the object to the lens, <b>parallel to the principal axis</b>.',
+              at:[0, HO], side:'above', ray:'par',
+              act:function(){ rays.par.snapped = true; rays.par.y = HO; rays.par.yo = outTarget('par'); } });
+    st.push({ text: conv
+        ? 'At the lens this ray is refracted, and it must pass <b>through the principal focus F</b> behind the lens.'
+        : 'At the lens this ray is spread outwards, so that it seems to have come <b>from the principal focus F</b> in front of the lens.',
+              at:[conv ? f : -f, 0], side:'below', ray:'par',
+              act:function(){ rays.par.aimed = true; } });
+    st.push({ text:'The centre ray travels from the tip of the object through the <b>optical centre</b>, the middle of the lens, and carries straight on without bending.',
+              at:[0, 0], box:[100, 296], ray:'cen',
+              act:function(){ rays.cen.snapped = true; rays.cen.y = 0; } });
+    if (usable('foc')){
+      st.push({ text: !conv
+          ? 'The focal ray travels from the tip of the object towards the <b>principal focus F on the far side</b> of the lens.'
+          : (u < f
+            ? 'The object is closer to the lens than F, so this ray cannot pass through F on its way in. It leaves the tip along the line that <b>points straight back to F</b>, shown dashed.'
+            : 'The focal ray travels from the tip of the object, <b>through the principal focus F</b> in front of the lens, and on to the lens.'),
+                at:[focusX(), 0], box:[140, 296], ray:'foc',
+                act:function(){ rays.foc.snapped = true; rays.foc.fx = focusX();
+                                rays.foc.y = inTarget('foc'); rays.foc.yo = outTarget('foc'); } });
+      st.push({ text: !conv
+          ? 'At the lens the focal ray is refracted, before it ever reaches F, and it leaves <b>parallel to the principal axis</b>.'
+          : (u < f
+            ? 'Because the ray is lined up with F, the lens refracts it so that it leaves <b>parallel to the principal axis</b>, exactly as if it had come from F.'
+            : 'Having passed through F, this ray leaves the lens <b>parallel to the principal axis</b>.'),
+                at:[XH('foc'), inTarget('foc')], box:[604, 96], ray:'foc',
+                act:function(){ rays.foc.aimed = true; } });
+    }
+    var im = image();
+    if (im.none){
+      st.push({ text:'Both rays leave the lens travelling in the <b>same direction</b>, so they never meet and no image is formed. The image is said to be at infinity.',
+                at:[300, HO/2 - 300*HO/f], box:[620, 88], act:function(){} });
+    } else {
+      st.push({ text: im.real
+          ? 'The rays meet at the <b>tip of the image</b>. The rest of the image stands on the principal axis below that point.'
+          : 'After the lens the rays spread apart and never meet. Follow the flashing dashed lines <b>backwards</b>, to the same side as the object: they meet at the <b>tip of the image</b>.',
+                at:[im.v, im.h],
+                box: im.real ? [96, 306] : [clamp(sx(-u) - 316, 16, VW - 308), 280],
+                noLine: !im.real,
+                act:function(){} });
+    }
+    return st;
+  }
+
+  function applyUpTo(i){
+    clearRays();
+    var st = demoSteps();
+    for (var k = 0; k <= i && k < st.length; k++) st[k].act();
+  }
+  function startDemo(){
+    savedRays = JSON.parse(JSON.stringify(rays));   /* give their own work back afterwards */
+    resetAnswers(); demoIx = 0; applyUpTo(0); draw();
+  }
+  function stepDemo(d){
+    var n = demoSteps().length, ni = demoIx + d;
+    if (ni < 0) return;
+    if (ni >= n){ stopDemo(true); return; }
+    demoIx = ni; applyUpTo(ni); draw();
+  }
+  function stopDemo(restore){
+    if (restore && savedRays){ rays = savedRays; touched = null; }
+    savedRays = null; demoIx = -1; draw();
+  }
+
+  function demoAct(e){
+    var g = e.target.closest && e.target.closest('[data-act]');
+    if (!g) return;
+    var a = g.getAttribute('data-act');
+    if (a === 'start') startDemo();
+    else if (a === 'next') stepDemo(1);
+    else if (a === 'back') stepDemo(-1);
+    else stopDemo(true);
+  }
+  gHow.addEventListener('click', demoAct);
+  gBub.addEventListener('click', demoAct);
+  gHow.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight'){
+      inDemo() ? stepDemo(1) : startDemo(); e.preventDefault();
+    } else if (e.key === 'ArrowLeft' && inDemo()){ stepDemo(-1); e.preventDefault(); }
+    else if (e.key === 'Escape' && inDemo()){ stopDemo(true); e.preventDefault(); }
+  });
+
+  /* ---------- glossary ---------- */
+  var scrim = $('#scrim'), lastFocus = null;
+  function openWords(term){
+    lastFocus = document.activeElement;
+    scrim.classList.add('open');
+    $('#btnCloseWords').focus();
+    if (term){
+      var el = $('#'+term);
+      if (el){
+        if (el.scrollIntoView) el.scrollIntoView({block:'center'});
+        el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+      }
+    }
+  }
+  function closeWords(){ scrim.classList.remove('open'); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  $('#btnWords').addEventListener('click', function(){ openWords(null); });
+  var scrimRays = $('#scrimRays');
+  function openRays(){ lastFocus = document.activeElement; scrimRays.classList.add('open'); $('#btnCloseRays').focus(); }
+  function closeRays(){ scrimRays.classList.remove('open'); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  $('#btnRays').addEventListener('click', openRays);
+  $('#btnCloseRays').addEventListener('click', closeRays);
+  scrimRays.addEventListener('click', function(e){ if (e.target === scrimRays) closeRays(); });
+  $('#btnCloseWords').addEventListener('click', closeWords);
+  scrim.addEventListener('click', function(e){ if (e.target === scrim) closeWords(); });
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return;
+    if (scrim.classList.contains('open')) closeWords();
+    else if (scrimRays.classList.contains('open')) closeRays();
+  });
+  svg.addEventListener('click', function(e){
+    var el = e.target.closest ? e.target.closest('[data-term]') : null;
+    if (el) openWords(el.getAttribute('data-term'));
+  });
+
+  rays.foc.fx = -0.5 * f;
+  draw();
+})();
+</script>
+</body>
+</html>
