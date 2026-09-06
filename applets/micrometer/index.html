@@ -142,6 +142,52 @@
   @media (prefers-reduced-motion:reduce){
     .hl.on{animation:none}
   }
+
+  /* ---- walkthrough placement ----
+     Default (above): inline in the control column.
+     Below: it floats, whenever the viewport is too short to show the
+     inline panel without scrolling (~730px needed). ---- */
+
+  @media (min-width:760px) and (max-height:719px){
+    .walk{
+      display:block;position:fixed;z-index:60;
+      bottom:18px;right:20px;width:340px;max-height:70vh;overflow:auto;
+      padding:16px 18px;
+      background:#1b2f41;border:1px solid #365370;border-left:3px solid var(--amber);
+      border-radius:14px;box-shadow:0 20px 52px rgba(0,0,0,.5);
+      opacity:0;visibility:hidden;pointer-events:none;
+      transform:translateX(22px);
+      transition:opacity .2s ease,transform .2s ease,visibility .2s;
+    }
+    .walk.open{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(0)}
+    .walk .chip:not(.total){background:#0e1b26}
+  }
+  @media (min-width:760px) and (max-width:999px) and (max-height:719px){
+    .walk{width:300px;right:12px}
+  }
+
+  @media (max-width:759px){
+    .walk{
+      display:block;position:fixed;z-index:60;
+      left:0;right:0;bottom:0;max-height:62vh;overflow:auto;
+      padding:16px 18px;padding-bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+      background:#1b2f41;border:1px solid #365370;border-top:3px solid var(--amber);
+      border-radius:14px 14px 0 0;box-shadow:0 -14px 44px rgba(0,0,0,.5);
+      opacity:0;visibility:hidden;pointer-events:none;
+      transform:translateY(26px);
+      transition:opacity .2s ease,transform .2s ease,visibility .2s;
+    }
+    .walk.open{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
+    .walk .chip:not(.total){background:#0e1b26}
+  }
+
+  @media (prefers-reduced-motion:reduce){ .walk{transition:none} }
+
+  /* reserve space for the tallest step so the panel never resizes
+     between steps and Back / Next / Close stay put */
+  .walk-title{min-height:46px}
+  .walk-body{min-height:126px}
+  .sum{min-height:66px}
 </style>
 </head>
 <body>
@@ -205,6 +251,8 @@
       <!-- thimble + ratchet -->
       <g id="thimble">
         <rect x="0" y="62" width="200" height="94" rx="7" fill="url(#gThimble)"/>
+        <g id="toolThimbleMarks" stroke="var(--engrave)" stroke-width="1.5" stroke-linecap="round" opacity=".75"></g>
+        <line x1="40" y1="67" x2="40" y2="151" stroke="#8a94a1" stroke-width="1.2" opacity=".55"/>
         <rect x="196" y="76" width="40" height="66" rx="9" fill="url(#gSteelH)"/>
         <g id="toolKnurl" stroke="#5f6a77" stroke-width="1.4" opacity=".5"></g>
         <line class="lead" x1="96" y1="160" x2="96" y2="176"/>
@@ -347,7 +395,7 @@
   })();
 
   /* ---------- build the thimble drum ---------- */
-  var marks = [], nums = [];
+  var marks = [], nums = [], toolMarks = [];
   (function(){
     var gM = $('#thimbleMarks'), gN = $('#thimbleNums'), i, el;
     for (i = 0; i < 50; i++){
@@ -373,11 +421,25 @@
     for (m = 0; m <= MAXMM; m++){
       var x = SLEEVE0 + m*IPPM;
       s += '<line x1="'+x+'" y1="106" x2="'+x+'" y2="'+(m%5===0?92:97)+'"/>';
+      if (m < MAXMM){
+        var xh = SLEEVE0 + (m + 0.5) * IPPM;   /* half-mm marks, below the datum */
+        s += '<line x1="'+xh+'" y1="112" x2="'+xh+'" y2="121"/>';
+      }
     }
     $('#toolTicks').innerHTML = s;
     s = '';
     for (m = 0; m < 14; m++) s += '<line x1="'+(112+m*6)+'" y1="72" x2="'+(112+m*6)+'" y2="146"/>';
     $('#toolKnurl').innerHTML = s;
+    /* thimble graduations for the tool view: one per division, positioned
+       every frame from the same drum projection as the zoomed view, so both
+       diagrams spin together and in the same direction. */
+    var gTM = $('#toolThimbleMarks'), tel;
+    for (m = 0; m < 50; m++){
+      tel = document.createElementNS('http://www.w3.org/2000/svg','line');
+      tel.setAttribute('x1', 8);
+      tel.setAttribute('x2', m % 5 === 0 ? 34 : 24);
+      gTM.appendChild(tel); toolMarks.push(tel);
+    }
   })();
 
   /* ---------- state ---------- */
@@ -419,6 +481,15 @@
         m.setAttribute('y1', y.toFixed(2));
         m.setAttribute('y2', y.toFixed(2));
         m.setAttribute('opacity', (Math.min(1,(depth-0.04)*3.4) * blur).toFixed(3));
+      }
+      /* same drum, smaller radius, on the tool diagram */
+      var tm = toolMarks[i];
+      if (depth <= 0.07){ tm.setAttribute('opacity', 0); }
+      else {
+        var ty = (109 + 44 * Math.sin(a)).toFixed(2);
+        tm.setAttribute('y1', ty);
+        tm.setAttribute('y2', ty);
+        tm.setAttribute('opacity', (Math.min(1,(depth-0.07)*3.2) * blur).toFixed(3));
       }
     }
     for (var k = 0; k < nums.length; k++){
@@ -627,10 +698,7 @@
     if (!answered) { shown = true; }
     walkOpen = true;
     $('#walk').classList.add('open');
-    $('#btnCheck').disabled = true;
-    $('#answer').disabled = true;
     showStep(0);
-    $('#walk').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'nearest'});
   }
   function closeWalk(){
     walkOpen = false;
@@ -647,10 +715,14 @@
   $('#wPrev').addEventListener('click', function(){ showStep(step-1); });
   $('#wClose').addEventListener('click', closeWalk);
   $('#answer').addEventListener('keydown', function(e){
-    if (e.key === 'Enter'){ answered || shown ? newReading() : check(); }
+    if (e.key === 'Enter'){ answered ? newReading() : check(); }
   });
   window.addEventListener('keydown', function(e){
-    if (e.key === 'Enter' && document.activeElement !== $('#answer') && (answered || shown)) newReading();
+    if (e.key === 'Enter' && document.activeElement !== $('#answer') && answered) newReading();
+  });
+
+  window.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && walkOpen) closeWalk();
   });
 
   /* first run */
