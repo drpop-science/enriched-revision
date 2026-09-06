@@ -152,19 +152,21 @@
   @media (min-width:760px) and (max-height:719px){
     .walk{
       display:block;position:fixed;z-index:60;
-      top:50%;right:20px;width:340px;max-height:84vh;overflow:auto;
+      bottom:18px;right:20px;width:340px;max-height:70vh;overflow:auto;
       padding:16px 18px;
       background:#1b2f41;border:1px solid #365370;border-left:3px solid var(--amber);
       border-radius:14px;box-shadow:0 20px 52px rgba(0,0,0,.5);
       opacity:0;visibility:hidden;pointer-events:none;
-      transform:translateY(-50%) translateX(22px);
+      transform:translateX(22px);
       transition:opacity .2s ease,transform .2s ease,visibility .2s;
     }
-    .walk.open{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(-50%) translateX(0)}
-    .walk .chip{background:#0e1b26}
+    .walk.open{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(0)}
+    .walk .chip:not(.total){background:#0e1b26}
   }
   @media (min-width:760px) and (max-width:999px) and (max-height:719px){
     .walk{width:300px;right:12px}
+    /* the narrower panel wraps the caliper's sum row too */
+    .sum{min-height:66px}
   }
 
   @media (max-width:759px){
@@ -179,10 +181,16 @@
       transition:opacity .2s ease,transform .2s ease,visibility .2s;
     }
     .walk.open{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
-    .walk .chip{background:#0e1b26}
+    .walk .chip:not(.total){background:#0e1b26}
   }
 
   @media (prefers-reduced-motion:reduce){ .walk{transition:none} }
+
+  /* reserve space for the tallest step so the panel never resizes
+     between steps and Back / Next / Close stay put */
+  .walk-title{min-height:46px}
+  .walk-body{min-height:126px}
+  .sum{min-height:34px}
 </style>
 <style>
   .seg{display:flex;border:1px solid var(--rule);border-radius:9px;overflow:hidden}
@@ -663,8 +671,6 @@
     if (!answered) shown = true;
     walkOpen = true;
     $('#walk').classList.add('open');
-    $('#btnCheck').disabled = true;
-    $('#answer').disabled = true;
     showStep(0);
   }
   function closeWalk(){
@@ -682,10 +688,10 @@
   $('#wPrev').addEventListener('click', function(){ showStep(step-1); });
   $('#wClose').addEventListener('click', closeWalk);
   $('#answer').addEventListener('keydown', function(e){
-    if (e.key === 'Enter'){ (answered || shown) ? newReading() : check(); }
+    if (e.key === 'Enter'){ answered ? newReading() : check(); }
   });
   window.addEventListener('keydown', function(e){
-    if (e.key === 'Enter' && document.activeElement !== $('#answer') && (answered || shown)) newReading();
+    if (e.key === 'Enter' && document.activeElement !== $('#answer') && answered) newReading();
   });
   $('#segUnit').addEventListener('click', function(e){
     var b = e.target.closest('button');
