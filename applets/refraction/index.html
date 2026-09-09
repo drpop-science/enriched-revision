@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#eef5ff" />
+  <title>Dr Pop's Enriched Revision — Refraction 3D</title>
+  <link rel="stylesheet" href="styles.css?v=1.0.1" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">DR POP'S ENRICHED REVISION</p>
+        <h1>Refraction <span>3D</span></h1>
+      </div>
+      <div class="mode-switch" role="group" aria-label="Learning mode">
+        <button class="mode-btn active" data-mode="explore">Explore</button>
+        <button class="mode-btn" data-mode="guided">Guided</button>
+        <button class="mode-btn" data-mode="test">Test Me</button>
+      </div>
+    </header>
+
+    <section class="preset-row" aria-label="Scenario presets">
+      <button class="preset active" data-preset="normal">Normal incidence</button>
+      <button class="preset" data-preset="higher">Into higher <em>n</em></button>
+      <button class="preset" data-preset="lower">Into lower <em>n</em></button>
+      <button class="preset" data-preset="critical">Critical angle</button>
+      <button class="preset" data-preset="tir">TIR</button>
+    </section>
+
+    <section class="workspace">
+      <div class="stage-card">
+        <div id="three-stage" class="three-stage" aria-label="3D refraction simulation">
+          <div class="stage-hud stage-hud-top">
+            <span id="medium1-label" class="medium-chip">Medium 1 · Air · n = 1.00</span>
+            <span id="status-badge" class="status-badge neutral">Normal incidence</span>
+          </div>
+          <div class="stage-hud stage-hud-bottom">
+            <span id="medium2-label" class="medium-chip">Medium 2 · Glass · n = 1.50</span>
+          </div>
+          <div class="view-tools">
+            <button id="view-3d" class="icon-btn active" type="button">3D</button>
+            <button id="view-front" class="icon-btn" type="button">Front</button>
+            <button id="reset-view" class="icon-btn" type="button" title="Reset teaching view">Reset view</button>
+          </div>
+          <div id="load-error" class="load-error" hidden>
+            <strong>3D engine could not load.</strong>
+            <span>Check that vendor/three.module.min.js and vendor/three.core.min.js are present, then reload this page.</span>
+          </div>
+
+          <div id="guided-card" class="guided-card" hidden>
+            <div class="guided-step"><span id="guide-step-number">1 / 5</span><strong id="guide-title">Watch the source</strong></div>
+            <p id="guide-copy">Each wavefront is emitted after the same time interval. The source frequency stays fixed.</p>
+            <div class="guided-actions">
+              <button id="guide-back" type="button">Back</button>
+              <button id="guide-next" class="primary" type="button">Next</button>
+            </div>
+          </div>
+
+          <div id="test-card" class="test-card" hidden>
+            <span class="mini-label">PREDICT FIRST</span>
+            <h3>What happens to the ray?</h3>
+            <div class="prediction-grid">
+              <button data-prediction="towards">Towards normal</button>
+              <button data-prediction="away">Away from normal</button>
+              <button data-prediction="straight">No direction change</button>
+              <button data-prediction="tir">Total internal reflection</button>
+            </div>
+            <p id="prediction-feedback" class="prediction-feedback">Choose before revealing the result.</p>
+          </div>
+        </div>
+
+        <div class="physics-strip">
+          <div class="readout">
+            <span>Frequency</span>
+            <strong>Fixed <span class="lock">●</span></strong>
+            <small id="frequency-note">same in both media</small>
+          </div>
+          <div class="readout">
+            <span>Wave speed</span>
+            <strong id="speed-readout">1.00c → 0.67c</strong>
+            <small id="speed-note">decreases</small>
+          </div>
+          <div class="readout">
+            <span>Wavelength</span>
+            <strong id="wavelength-readout">1.00λ₀ → 0.67λ₀</strong>
+            <small id="wavelength-note">decreases</small>
+          </div>
+          <div class="readout direction-readout">
+            <span>Direction</span>
+            <strong id="direction-readout">UNCHANGED</strong>
+            <small id="direction-note">i = 0°</small>
+          </div>
+        </div>
+      </div>
+
+      <aside class="controls-panel">
+        <section class="control-card">
+          <div class="card-heading"><div><span class="step-dot">1</span><h2>Media</h2></div><button id="swap-media" class="swap-btn" type="button">⇄ Swap</button></div>
+          <label>Incident medium
+            <select id="medium1-select"></select>
+          </label>
+          <div class="n-row"><span>Refractive index</span><strong id="n1-value">1.00</strong></div>
+          <label>Second medium
+            <select id="medium2-select"></select>
+          </label>
+          <div class="n-row"><span>Refractive index</span><strong id="n2-value">1.50</strong></div>
+          <p class="helper">Higher <em>n</em> means lower wave speed. “Optically denser” refers to refractive index, not ordinary mass density.</p>
+        </section>
+
+        <section class="control-card">
+          <div class="card-heading"><div><span class="step-dot">2</span><h2>Incidence angle</h2></div><strong id="angle-value" class="angle-pill">0°</strong></div>
+          <input id="angle-slider" type="range" min="0" max="80" value="0" step="1" aria-label="Angle of incidence" />
+          <div id="critical-track" class="critical-track" hidden>
+            <span id="critical-marker" class="critical-marker"></span>
+            <span id="critical-label" class="critical-label">c = 41.8°</span>
+          </div>
+          <div class="angle-grid">
+            <div><span>i</span><strong id="i-readout">0°</strong></div>
+            <div><span>r</span><strong id="r-readout">0°</strong></div>
+          </div>
+        </section>
+
+        <section class="control-card">
+          <div class="card-heading"><div><span class="step-dot">3</span><h2>Teaching overlays</h2></div></div>
+          <div class="toggle-list">
+            <label class="toggle"><input id="toggle-wavefronts" type="checkbox" checked><span></span>Wavefronts</label>
+            <label class="toggle"><input id="toggle-markers" type="checkbox" checked><span></span>Wavefront markers</label>
+            <label class="toggle"><input id="toggle-ray" type="checkbox" checked><span></span>Ray</label>
+            <label class="toggle"><input id="toggle-normal" type="checkbox" checked><span></span>Normal</label>
+            <label class="toggle"><input id="toggle-angles" type="checkbox" checked><span></span>Angle arcs</label>
+            <label class="toggle"><input id="toggle-rulers" type="checkbox"><span></span>Wavelength guides</label>
+          </div>
+        </section>
+
+        <section class="control-card equation-card">
+          <span class="mini-label">CAIE RELATIONSHIPS</span>
+          <div id="equation-main" class="equation">n = <span class="fraction"><span>c</span><span>v</span></span></div>
+          <p id="equation-explainer">Refractive index is inversely related to wave speed.</p>
+          <div id="air-equation" class="secondary-equation">For air → material: <strong>n = sin i / sin r</strong></div>
+          <div id="critical-equation" class="secondary-equation" hidden>For material → air: <strong>n = 1 / sin c</strong></div>
+        </section>
+
+        <section class="control-card playback-card">
+          <button id="play-toggle" class="primary wide" type="button">Pause</button>
+          <button id="slow-toggle" type="button">½ speed</button>
+          <button id="reset-sim" type="button">Reset</button>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    window.__refractionReady = false;
+    window.setTimeout(() => {
+      if (!window.__refractionReady) document.getElementById('load-error').hidden = false;
+    }, 6500);
+  </script>
+  <script type="module" src="script.js?v=1.0.1"></script>
+</body>
+</html>
