@@ -966,17 +966,35 @@ body.presentation-mode .scene-panel.presentation-fullscreen .scene {
   font-size: 0.86rem;
 }
 
-/* In normal page view, de-emphasise everything except the diagram and tutorial. */
+/* Tutorial focus: darken the surrounding interface while keeping
+   the simulation and tutorial card clear. */
+body.tutorial-page-focus {
+  background: #20272d;
+}
+
 body.tutorial-page-focus .topbar {
   opacity: 0.24;
   filter: grayscale(0.5);
-  transition: opacity 180ms ease, filter 180ms ease;
+  color: #dce5eb;
+  transition:
+    opacity 180ms ease,
+    filter 180ms ease,
+    color 180ms ease;
+}
+
+body.tutorial-page-focus .control-panel {
+  background: #20272d;
+  border-color: rgba(255,255,255,0.08);
 }
 
 body.tutorial-page-focus .control-panel > :not(.walkthrough-banner) {
-  opacity: 0.22 !important;
-  filter: grayscale(0.55);
-  transition: opacity 180ms ease, filter 180ms ease;
+  opacity: 0.20 !important;
+  filter: grayscale(0.65);
+  color: #dce5eb;
+  transition:
+    opacity 180ms ease,
+    filter 180ms ease,
+    color 180ms ease;
 }
 
 body.tutorial-page-focus .scene-panel {
