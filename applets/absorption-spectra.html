@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Absorption and emission spectra — Dr Pop's Enriched Revision</title>
+<style>
+  :root{
+    --ground:#12212e;
+    --panel:#182a3a;
+    --panel-2:#1e3448;
+    --rule:#2c4459;
+    --ink:#e7eef4;
+    --ink-dim:#93a8ba;
+    --amber:#f0b429;
+    --good:#4ec9a4;
+    --bad:#e8735b;
+    --cloud:#7cc4ff;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1260px;margin:0 auto;padding:20px 20px 40px}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+  h1{font-size:24px;font-weight:600;letter-spacing:-.01em;margin:0}
+  .brand{font-size:13px;color:var(--ink-dim)}
+  .brand b{font-weight:600;color:#b9cbd9}
+
+  .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+  .main{display:contents}
+  .stage{order:1} .panel{order:2} .data{order:3}
+  @media (min-width:880px){
+    .layout{grid-template-columns:minmax(0,1fr) 322px}
+    .main{display:flex;flex-direction:column;gap:14px;min-width:0}
+  }
+  @media (min-width:1120px){ .layout{grid-template-columns:minmax(0,1fr) 350px} }
+
+  .stage{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:8px;overflow:hidden}
+  .view{position:relative;width:100%;aspect-ratio:1000/650;border-radius:10px;overflow:hidden;background:#0b1218}
+  .view > canvas,.view > svg{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+
+  /* scene stacking + cross-fade */
+  .scene{opacity:0;pointer-events:none;transition:opacity .45s ease}
+  .view[data-scene="cloud"] #cloud,
+  .view[data-scene="atom"]  #atom{opacity:1;pointer-events:auto}
+  .stageBar{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;
+            justify-content:center;flex-wrap:wrap;gap:7px;padding:9px 12px 10px;
+            background:linear-gradient(to top,rgba(8,14,19,.94) 42%,rgba(8,14,19,0))}
+  .view[data-scene="atom"] .stageBar{display:none}
+  .stageBar .play{width:38px;height:38px;flex:none;padding:0;border:0;border-radius:50%;cursor:pointer;
+            background:var(--amber);color:#241c05;font-size:14px;line-height:1;
+            display:flex;align-items:center;justify-content:center}
+  .stageBar .play:hover{background:#ffc93f}
+  .stageBar .barLbl{font-size:12px;color:var(--ink-dim);margin:0 2px 0 6px}
+  .stageTop{position:absolute;right:12px;top:12px;z-index:5}
+  .barSrc{display:flex;gap:5px}
+  .barSrc button{width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;
+            border-radius:10px;background:rgba(30,52,72,.92);border:1px solid var(--rule);cursor:pointer}
+  .barSrc button:hover{background:#2b4763}
+  .barSrc button.sel{border-color:var(--amber);background:#26405a}
+  .barSrc svg{display:block}
+  .barFilt{display:flex;flex-wrap:wrap;gap:5px}
+  .barFilt button{display:flex;align-items:center;gap:6px;padding:5px 11px;font-size:12.5px;font-weight:500;
+            border-radius:999px;background:rgba(30,52,72,.92);border:1px solid var(--rule);color:var(--ink);
+            cursor:pointer}
+  .barFilt button:hover{background:#2b4763}
+  .barFilt button.sel{border-color:var(--amber);color:var(--amber);font-weight:700}
+  .barFilt .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
+  @media (max-width:720px){
+    .stageBar{gap:4px;padding:6px 6px 7px}
+    .stageBar .play{width:30px;height:30px;font-size:12px}
+    .barSrc button{width:28px;height:28px}
+    .barSrc svg{width:15px;height:15px}
+    .stageBar .barLbl{display:none}
+    .barFilt button{padding:3px 7px;font-size:10.5px;gap:4px}
+    .barFilt .dot{width:7px;height:7px}
+  }
+
+  /* walkthrough bubble + dimming */
+  .spot{transition:opacity .3s ease}
+  .dim .spot{opacity:.13}
+  .dim .spot.lit{opacity:1}
+  .bubble{position:absolute;max-width:44%;min-width:230px;padding:12px 14px;background:#0e1b26;
+          border:1px solid var(--amber);border-left-width:3px;border-radius:11px;box-shadow:0 8px 26px rgba(0,0,0,.55);
+          font-size:14px;line-height:1.5;color:#dce8f1;z-index:6}
+  .bubble .step{font-family:var(--mono);font-size:11.5px;color:var(--amber);display:block;margin-bottom:5px}
+  .bubble b{color:#fff;font-weight:600}
+  .bubble .row{display:flex;gap:8px;margin-top:11px}
+  .bubble button{padding:7px 13px;font-size:13.5px}
+  @media (max-width:720px){ .bubble{max-width:74%;min-width:0;font-size:12.5px;padding:9px 11px} }
+
+  .panel{display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--panel);border:1px solid var(--rule);border-radius:14px}
+  button{font:inherit;font-size:15px;font-weight:500;color:var(--ink);background:var(--panel-2);border:1px solid var(--rule);
+         border-radius:9px;padding:11px 16px;cursor:pointer;transition:background .15s ease,border-color .15s ease}
+  button:hover:not(:disabled){background:#26405a;border-color:#3d5d78}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--amber);border-color:var(--amber);color:#241c05;font-weight:600}
+  button.primary:hover:not(:disabled){background:#ffc93f;border-color:#ffc93f}
+  button.mini{padding:4px 10px;font-size:12.5px}
+  .block{width:100%}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+  .lbl{font-size:13px;color:var(--ink-dim);margin-top:4px}
+  .seg{display:flex;border:1px solid var(--rule);border-radius:9px;overflow:hidden}
+  .seg button{flex:1;border:0;border-radius:0;background:transparent;padding:9px 2px;font-size:14px}
+  .seg button+button{border-left:1px solid var(--rule)}
+  .seg button.sel{background:var(--panel-2);color:var(--amber);font-weight:700}
+  .seg button:hover:not(.sel){background:#22384c}
+  .segwrap{display:flex;flex-wrap:wrap;gap:6px}
+  .segwrap button{flex:1 1 30%;padding:8px 4px;font-size:13.5px;background:var(--panel-2)}
+  .segwrap button.sel{color:var(--amber);font-weight:700;border-color:var(--amber)}
+
+  .intro{margin:2px 0 0;font-size:14.5px;line-height:1.55;color:#c3d3df}
+  .hint{margin:2px 0 0;font-size:12.5px;line-height:1.4;color:#6f889e}
+  .hint b{color:#93a8ba;font-weight:600}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:12px;margin:6px 0 0;border-radius:6px;
+                    border:1px solid var(--rule);background:#0e1b26;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
+                    background:var(--ink);border:3px solid var(--amber);box-shadow:0 1px 4px rgba(0,0,0,.5)}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--ink);border:3px solid var(--amber)}
+  input[type=range]::-moz-range-track{background:transparent}
+  .ends{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--ink-dim);margin-top:-2px}
+
+  input[type=text]{font-family:var(--mono);font-size:18px;font-weight:600;width:100%;padding:7px 46px 7px 10px;color:var(--ink);
+                   background:#0e1b26;border:1px solid var(--rule);border-radius:9px;text-align:right}
+  input[type=text].invalid{border-color:var(--bad)}
+  .field{position:relative;display:flex;align-items:center}
+  .unit{position:absolute;right:10px;font-family:var(--mono);font-size:13px;color:var(--ink-dim);pointer-events:none}
+
+  .tally{display:flex;flex-direction:column;gap:0;border:1px solid var(--rule);border-radius:11px;background:#0e1b26;overflow:hidden}
+  .tally .r{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 11px;font-size:13px;color:var(--ink-dim)}
+  .tally .r+.r{border-top:1px solid #1c2f40}
+  .tally .r b{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink)}
+  .tally .r.hi b{color:var(--amber)}
+  .tally .r.go b{color:var(--good)}
+  .tally .foot{padding:8px 11px;font-size:12px;line-height:1.4;color:#6f889e;border-top:1px solid #1c2f40;background:#0c1620}
+
+  .beamNote{margin:8px 0 0;padding:9px 11px;border:1px solid var(--rule);border-radius:10px;
+            background:#0e1b26;font-size:13.5px;line-height:1.45;color:var(--ink-dim)}
+  .beamNote .lam{font-family:var(--mono);font-weight:600;color:var(--ink)}
+  .beamNote .yes{color:var(--amber);font-weight:600}
+  .beamNote .no{color:var(--bad);font-weight:600}
+  .verdict{min-height:26px;font-size:14px;line-height:1.45;color:var(--ink-dim)}
+  .verdict.good{color:var(--good)}
+  .verdict.bad{color:var(--bad)}
+  .verdict .num{font-family:var(--mono);font-weight:600}
+
+  .note{font-size:13px;color:var(--ink-dim);border-top:1px solid var(--rule);padding-top:10px;margin-top:2px}
+  .note summary{cursor:pointer;color:#b9cbd9;font-size:14px}
+  .note p{margin:8px 0 0;line-height:1.5}
+  .note b{color:#b9cbd9;font-weight:600}
+
+  /* exam modal */
+  .scrim{position:fixed;inset:0;background:rgba(6,11,15,.74);backdrop-filter:blur(2px);z-index:40;
+         display:flex;align-items:flex-start;justify-content:center;padding:26px 16px;overflow:auto}
+  .sheet{width:min(760px,100%);background:var(--panel);border:1px solid var(--rule);border-radius:16px;padding:20px 22px 24px;
+         box-shadow:0 24px 70px rgba(0,0,0,.6)}
+  .sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:4px}
+  .sheet h2{font-size:19px;font-weight:600;margin:0}
+  .sheet .sub{font-size:13.5px;color:var(--ink-dim);margin:2px 0 16px;line-height:1.5}
+  .qcard{border:1px solid var(--rule);border-radius:12px;padding:14px 16px;background:#0e1b26;margin-top:12px}
+  .qcard .kick{font-family:var(--mono);font-size:11.5px;color:var(--amber);letter-spacing:.02em}
+  .qcard .qtext{font-size:15px;line-height:1.5;color:#dbe6ee;margin:7px 0 0}
+  .qcard h4{font-size:13px;font-weight:600;color:#b9cbd9;margin:15px 0 0}
+  .ms{list-style:none;margin:7px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .ms li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:#c3d3df}
+  .ms .b1{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:#241c05;background:var(--amber);
+          border-radius:4px;padding:2px 5px;margin-top:1px}
+  .model{margin:8px 0 0;padding:11px 13px;border-left:3px solid var(--good);background:#10222b;border-radius:0 9px 9px 0;
+         font-size:14px;line-height:1.6;color:#dce8f1}
+  .pitfall{margin:9px 0 0;font-size:12.5px;line-height:1.45;color:#8fa6b8}
+  .pitfall b{color:var(--bad);font-weight:600}
+
+  footer{margin-top:18px;font-size:12px;color:#5d7488;line-height:1.5}
+  footer a{color:#7f96a9}
+
+  /* svg text */
+  .t-ttl{font:600 17px var(--sans);fill:#e7eef4}
+  .t-lab{font:500 14px var(--sans);fill:#c3d3df}
+  .t-dim{font:13px var(--sans);fill:#8fa6b8}
+  .t-sml{font:12px var(--sans);fill:#7d94a7}
+  .t-num{font:600 13px var(--mono);fill:#9fb6c8}
+  .t-amb{font:600 13px var(--mono);fill:var(--amber)}
+  .t-good{font:600 13px var(--mono);fill:var(--good)}
+  .lvl{stroke:#cfdbe6;stroke-width:2}
+  .lvl.low{stroke-width:3.2}
+  .rose-ring{fill:none;stroke:#33506b;stroke-width:1}
+  .rose-tick{stroke:#33506b;stroke-width:1}
+  .cone{fill:var(--amber);opacity:.16}
+  .cone-edge{stroke:var(--amber);stroke-width:1;stroke-dasharray:4 4;opacity:.5}
+  .eye{fill:none;stroke:#b9cbd9;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+  .eye-p{fill:#b9cbd9}
+  .strip-frame{fill:none;stroke:#3a5670;stroke-width:1}
+  .sight{stroke:#4a6379;stroke-width:1.4;stroke-dasharray:5 6}
+
+  @media (max-width:720px){
+    .wrap{padding:16px 12px 40px}
+    h1{font-size:20px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .scene,.spot{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Absorption and emission spectra</h1>
+    <div class="brand"><b>Dr Pop's Enriched Revision</b> · Cambridge 9702</div>
+  </header>
+
+  <div class="layout">
+  <div class="main">
+  <div class="stage">
+    <div class="view" id="view" data-scene="sun">
+
+      <!-- ===================== scene 2: the cloud ===================== -->
+      <svg class="scene" id="cloud" viewBox="0 0 1000 650" role="img"
+           aria-label="White light passing through a cloud of cool gas and the spectra that result">
+        <defs>
+          <radialGradient id="gSrc" cx=".5" cy=".5" r=".5">
+            <stop offset="0" stop-color="#fff6df"/><stop offset=".55" stop-color="#ffcf6b"/>
+            <stop offset="1" stop-color="#e08b1e" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="gCloud" cx=".5" cy=".45" r=".55">
+            <stop offset="0" stop-color="#2c4a63" stop-opacity=".95"/>
+            <stop offset=".6" stop-color="#22394e" stop-opacity=".85"/>
+            <stop offset="1" stop-color="#1a2c3d" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="gBeam" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#f6e3b6" stop-opacity=".20"/>
+            <stop offset=".82" stop-color="#f6e3b6" stop-opacity=".07"/>
+            <stop offset="1" stop-color="#f6e3b6" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="gRain" x1="0" y1="0" x2="1" y2="0"></linearGradient>
+          <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="3"/>
+          </filter>
+          <filter id="soft2" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="1.6"/>
+          </filter>
+        </defs>
+
+        <g id="cSource" class="spot"></g>
+        <g id="cBeam"   class="spot"></g>
+        <g id="cGas"    class="spot"></g>
+        <g id="cEyes"   class="spot"></g>
+        <g id="cPhot"></g>
+        <g id="cStrips"></g>
+      </svg>
+
+      <!-- ===================== scene 3: one atom ===================== -->
+      <svg class="scene" id="atom" viewBox="0 0 1000 650" role="img"
+           aria-label="Energy levels of one atom, absorbing and re-emitting a photon">
+        <g id="aRain"  class="spot"></g>
+        <g id="aWell"  class="spot"></g>
+        <g id="aRose"  class="spot"></g>
+        <g id="aStrip" class="spot"></g>
+        <g id="aFx"></g>
+      </svg>
+
+      <div class="stageTop"><div class="barSrc" id="barSrc"></div></div>
+
+      <div class="stageBar" id="stageBar">
+        <button class="play" id="btnPlay" aria-label="Start the light" title="Start the light">\u25b6</button>
+        <span class="barLbl">filter</span>
+        <div class="barFilt" id="barFilt"></div>
+      </div>
+
+      <div id="bubbleHost"></div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ===================== controls ===================== -->
+  <aside class="panel">
+    <div class="lbl">Element in the cool gas</div>
+    <div class="segwrap" id="segEl"></div>
+    <p class="intro" id="elFact"></p>
+    <p class="hint" id="labNote" hidden>In a school lab only hydrogen and helium can be had as a cool gas
+      cloud. The metals leave their lines in starlight, not on the bench.</p>
+
+    <div class="lbl">Light source</div>
+    <div class="seg" id="segSrc">
+      <button data-m="sun" class="sel">The Sun</button>
+      <button data-m="lab">Lamp and gas cloud</button>
+    </div>
+
+    <div class="lbl">View</div>
+    <div class="seg" id="segScene">
+      <button data-s="cloud" class="sel">The gas cloud</button>
+      <button data-s="atom">One atom</button>
+    </div>
+
+    <button id="btnWalk" class="primary block">Walk me through the dark lines</button>
+
+    <div id="cloudCtl">
+      <div class="lbl">Show</div>
+      <div class="seg" id="segShow">
+        <button data-v="all" class="sel">All photons</button>
+        <button data-v="match">Only the matching ones</button>
+      </div>
+      <div class="beamNote" id="beamNote"></div>
+      <div class="pair">
+        <button id="btnRun">Start the light</button>
+        <button id="btnBurst">Send 400 photons</button>
+      </div>
+      <div class="lbl">Photons per second <span class="t-num" id="rateOut"></span></div>
+      <input type="range" id="rate" min="6" max="90" step="1" value="26" aria-label="Photons per second">
+      <div class="ends"><span>slow</span><span>fast</span></div>
+      <button id="btnClear" class="block">Clear the spectra</button>
+
+      <div class="lbl">What happened to the light</div>
+      <div class="tally">
+        <div class="r"><span>Photons that matched a gap</span><b id="tMatch">0</b></div>
+        <div class="r hi"><span>Absorbed, then re-emitted</span><b id="tAbs">0</b></div>
+        <div class="r go"><span>Re-emitted straight on to the eye</span><b id="tFwd">0</b></div>
+        <div class="r"><span>Missing from the beam ahead</span><b id="tGone">0</b></div>
+        <div class="foot" id="tFoot">The eye here collects a cone of 8°, about 1 direction in 200.</div>
+      </div>
+    </div>
+
+    <div id="atomCtl" hidden>
+      <div class="lbl">Line to study</div>
+      <div class="segwrap" id="segLine"></div>
+      <button id="btnFire" class="primary block">Send in white light</button>
+      <button id="btnFire20" class="block">Repeat it 20 times</button>
+      <p class="hint" id="atomHint"></p>
+    </div>
+
+    <details class="note" id="checkBox" open>
+      <summary>Check yourself</summary>
+      <p id="qPrompt" style="margin:9px 0 0;color:#c3d3df;line-height:1.5"></p>
+      <div class="field" style="margin-top:8px">
+        <input type="text" id="qIn" inputmode="decimal" autocomplete="off" aria-label="Wavelength in nanometres">
+        <span class="unit">nm</span>
+      </div>
+      <div class="pair" style="margin-top:8px">
+        <button id="qCheck">Check</button><button id="qNew">Another gap</button>
+      </div>
+      <div class="verdict" id="qOut" aria-live="polite" style="margin-top:8px"></div>
+    </details>
+
+    <button id="btnExam" class="block">Exam answers</button>
+
+    <details class="note">
+      <summary>How it works</summary>
+      <p><b>Light is not a tidy queue.</b> Photons of every colour leave the source at random moments and
+        from every part of it, so the beam is a jumble rather than an ordered stream of colours \u2014 that
+        jumble is what makes it white. To pick out what one colour does, put a filter after the source:
+        only that band reaches the gas, and you can see at once whether anything is absorbed.</p>
+      <p><b>Energetic is not the same as useful.</b> Hydrogen\u2019s violet, blue and cyan lines carry more
+        energy than its red one, but all four are absorbed just as readily, because all four start from
+        n = 2. The red 656 nm photon is the least energetic of them and it still excites the electron,
+        from n = 2 up to n = 3. Each dark line in the strip is marked with the jump that made it.</p>
+      <p><b>Matching, not merely enough.</b> Choose a filter whose band holds none of the element\u2019s
+        lines and nothing is absorbed, however energetic the photons are. A photon is taken whole or not
+        at all, so its energy has to equal a gap exactly.</p>
+      <p><b>Why only certain wavelengths.</b> An electron in an atom can only have certain energies. To move
+        up it must take in exactly the gap between two levels, and a photon is taken whole or not at all. So a
+        photon is absorbed only when <i>hf</i> = <i>E</i><sub>2</sub> − <i>E</i><sub>1</sub>. One energy means one
+        frequency, and so one wavelength.</p>
+      <p><b>Where the light goes.</b> The electron falls back almost at once and gives the photon back out. It
+        does not remember which way the first photon was going, so it emits in any direction. Only the tiny
+        fraction still heading your way reaches your eye, so that wavelength arrives weaker: a dark line.
+        The energy is not destroyed — look at the cloud from the side and you see the same wavelengths as
+        bright lines.</p>
+      <p><b>Hydrogen in the Sun.</b> The four hydrogen lines you can see come from atoms that are already in
+        <i>n</i> = 2. Jumps up from <i>n</i> = 1 need ultraviolet photons, so they leave no line you can see.</p>
+      <p><b>The ladders.</b> Hydrogen and sodium are drawn with their real energies. For helium, magnesium,
+        calcium and iron the level schemes are more complicated, so only the two levels involved in each line
+        are drawn, with the gap that matters.</p>
+    </details>
+  </aside>
+
+  </div>
+
+  <footer>
+    Dr Pop's Enriched Revision · Cambridge International AS &amp; A Level Physics 9702 · Quantum physics.
+    Mark scheme points are Cambridge Assessment International Education scoring points, reproduced for
+    classroom use. Shared CC BY-NC.
+  </footer>
+</div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="examTtl">
+    <div class="sheet-head">
+      <h2 id="examTtl">Exam answers</h2>
+      <button id="examClose" class="mini">Close</button>
+    </div>
+    <p class="sub">Three past questions on this topic, the scoring points the examiner is looking for, and a
+      model answer written to hit every one of them.</p>
+    <div id="examBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
+const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+const HC = 1239.84;                       // eV nm
+const clamp = (x,a,b) => Math.max(a, Math.min(b,x));
+const rnd = (a,b) => a + Math.random()*(b-a);
+
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  if (attrs) for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(parent, x, y, s, cls, extra){
+  const t = el('text', Object.assign({x, y, class:cls||'t-lab'}, extra||{}), parent);
+  t.textContent = s; return t;
+}
+
+/* ---------- visible spectrum colour ---------- */
+const LAM0 = 380, LAM1 = 720;
+function wl2rgb(w){
+  let r=0,g=0,b=0;
+  if (w>=380 && w<440){ r=-(w-440)/60; b=1; }
+  else if (w<490){ g=(w-440)/50; b=1; }
+  else if (w<510){ g=1; b=-(w-510)/20; }
+  else if (w<580){ r=(w-510)/70; g=1; }
+  else if (w<645){ r=1; g=-(w-645)/65; }
+  else { r=1; }
+  let f = 1;
+  if (w>700) f = .3 + .7*(780-w)/80;
+  else if (w<420) f = .35 + .65*(w-380)/40;
+  const G = x => Math.round(255*Math.pow(Math.max(0,Math.min(1,x))*f, .8));
+  return [G(r),G(g),G(b)];
+}
+const wlCss = w => { const c = wl2rgb(w); return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; };
+
+/* =====================================================================
+   Elements of the Sun's cooler outer gas.
+   Hydrogen and sodium carry their real level energies. For the others the
+   level schemes are far more involved, so only the pair of levels behind
+   each line is drawn, with the gap worked from the measured wavelength.
+   ===================================================================== */
+function mk(lines){ return lines.map(L => ({lam:L[0], dE:HC/L[0], tag:L[1]||''})); }
+
+const ELEMENTS = {
+  H: { sym:'H', name:'Hydrogen', share:'91 atoms in 100',
+       fact:'About 91 of every 100 atoms in the Sun are hydrogen. The lines you can see all start from '
+          + 'n = 2, not from the ground state: jumps up from n = 1 need ultraviolet photons.',
+       mode:'levels', lowName:'n = 2',
+       levels:[{name:'n = 1',E:-13.60},{name:'n = 2',E:-3.40},{name:'n = 3',E:-1.51},
+               {name:'n = 4',E:-0.85},{name:'n = 5',E:-0.544},{name:'n = 6',E:-0.3778}],
+       low:1, ups:[2,3,4,5] },
+  He:{ sym:'He', name:'Helium', share:'9 atoms in 100',
+       fact:'Helium was found in the Sun\u2019s spectrum in 1868, before anyone had found it on Earth. '
+          + 'Its yellow line sits very close to sodium\u2019s but is not the same line.',
+       mode:'gaps', lines:mk([[587.6],[501.6],[447.1]]) },
+  Na:{ sym:'Na', name:'Sodium', share:'a trace',
+       fact:'Only a trace of sodium, yet its pair of yellow lines are among the strongest dark lines in the '
+          + 'Sun\u2019s spectrum. The outer electron jumps 3s \u2192 3p.',
+       mode:'levels', lowName:'3s',
+       levels:[{name:'3s',E:-5.139},{name:'3p',E:-3.035},{name:'4s',E:-1.948},{name:'3d',E:-1.522}],
+       low:0, ups:[1] },
+  Mg:{ sym:'Mg', name:'Magnesium', share:'a trace',
+       fact:'Magnesium\u2019s three green lines lie within 2 nm of each other, so they look like one wide '
+          + 'dark band unless the spectrum is spread out very well.',
+       mode:'gaps', lines:mk([[518.4],[517.3],[516.7]]) },
+  Ca:{ sym:'Ca', name:'Calcium', share:'a trace',
+       fact:'The two calcium lines in the violet are the broadest dark lines in the whole solar spectrum, '
+          + 'even though calcium is far rarer than hydrogen.',
+       mode:'gaps', lines:mk([[422.7],[396.8],[393.4]]) },
+  Fe:{ sym:'Fe', name:'Iron', share:'a trace',
+       fact:'Iron has so many energy levels that it leaves hundreds of dark lines across the visible '
+          + 'spectrum. Five of the strongest are drawn here.',
+       mode:'gaps', lines:mk([[527.0],[495.8],[466.8],[438.4],[430.8]]) }
+};
+const ORDER = ['H','He','Na','Mg','Ca','Fe'];
+
+/* build a uniform line list for every element */
+for (const k of ORDER){
+  const E = ELEMENTS[k];
+  if (E.mode === 'levels'){
+    const lo = E.levels[E.low];
+    E.lines = E.ups.map(i => {
+      const up = E.levels[i], dE = up.E - lo.E;
+      return {lam:HC/dE, dE, upName:up.name, lowName:lo.name, upE:up.E, lowE:lo.E};
+    });
+  } else {
+    E.lines.forEach(L => { L.upName = 'higher level'; L.lowName = 'starting level'; });
+  }
+  E.lines.forEach((L,i) => { L.i = i; L.abs = 0; L.emit = 0; });
+}
+
+let key = 'H';
+let elm = ELEMENTS[key];
+const el4 = x => x.toFixed(1);
+const eV  = x => x.toFixed(2);
+
+window.addEventListener('resize', layoutBubble);
+
+/* =====================================================================
+   Scene 2 — white light through the cool gas
+   ===================================================================== */
+const BY0 = 250, BY1 = 350, CXc = 500, CYc = 300, CRX = 155, CRY = 112;
+const EYEX = 900, SIDEY = 96;
+const FILT_X = 142, FILT_W = 26;                        // the filter glass, just after the source
+/* Both beam spectra span exactly the beam's own cross-section, so the light is seen to
+   pass through them rather than to swell out into a chart. */
+const VIN  = {x:206, y:BY0, w:40, h:BY1-BY0};
+const VOUT = {x:700, y:BY0, w:40, h:BY1-BY0};
+const HSIDE = {x:350, y:462, w:300, h:40};              // what the gas sends out sideways
+const SX = VIN.x + VIN.w + 4, BEAMEND = VOUT.x + 6;
+const ATOMS = [[-.55,-.35],[-.2,.3],[.12,-.5],[.42,.12],[-.72,.2],[.66,-.28],[-.06,-.08],
+               [.3,.55],[-.38,.58],[.58,.46],[-.62,-.62],[.02,.66],[.78,.1],[-.86,-.05]]
+  .map(p => ({x:CXc+p[0]*CRX*0.88, y:CYc+p[1]*CRY*0.82, flash:0}));
+
+(function rainbowDef(){
+  const g = $('#gRain');
+  const v = el('linearGradient', {id:'gRainUp', x1:'0', y1:'0', x2:'0', y2:'1'}, g.parentNode);
+  for (let w=LAM0; w<=LAM1; w+=10){
+    const off = ((w-LAM0)/(LAM1-LAM0)*100).toFixed(2)+'%';
+    el('stop', {offset:off, 'stop-color':wlCss(w)}, g);
+    el('stop', {offset:off, 'stop-color':wlCss(w)}, v);
+  }
+})();
+const lamPos = (lam, a, len) => a + (clamp(lam,LAM0,LAM1)-LAM0)/(LAM1-LAM0)*len;
+
+/* An eye in profile. The eyeball bulges out on the side it is looking towards and the lids
+   sweep back to a corner behind it, so the gaze runs along local \u2212x: rot 0 looks left,
+   180 looks right, \u221290 looks down, 90 looks up. */
+function eyeIcon(g, x, y, rot){
+  const k = el('g', {transform:'translate('+x+','+y+') rotate('+rot+')'}, g);
+  el('path', {class:'eye', 'stroke-width':5, d:'M -26 -37 C 3 -33 30 -19 57 -1'}, k);
+  el('path', {class:'eye', 'stroke-width':5, d:'M -26  37 C 3  33 30  19 57  1'}, k);
+  el('path', {class:'eye-p', d:'M -21 -28 C -47 -15 -47 15 -21 28 C -7 14 -7 -14 -21 -28 Z'}, k);
+  el('circle', {cx:-29, cy:0, r:7.2, fill:'#0b1218'}, k);
+  el('circle', {cx:-32.5, cy:-4.5, r:2.5, fill:'#e7eef4'}, k);
+  return k;
+}
+
+/* a spectrum strip: mode 'full' | 'dark' | 'bright' */
+function buildStrip(host, idx, mode, label, caption){
+  const g = el('g', {class:'spot', id:'sp'+idx}, host);
+  const x = HSIDE.x, y = HSIDE.y, w = HSIDE.w, h = HSIDE.h;
+  txt(g, x, y-11, label, 't-lab');
+  if (mode === 'bright') el('rect', {x, y, width:w, height:h, fill:'#05080b'}, g);
+  else el('rect', {x, y, width:w, height:h, fill:'url(#gRain)'}, g);
+  const lines = el('g', {class:'lineMarks'}, g);
+  el('rect', {x, y, width:w, height:h, class:'strip-frame', rx:3}, g);
+  [400,500,600,700].forEach(t => {
+    const tx = lamPos(t, x, w);
+    el('line', {x1:tx, y1:y+h, x2:tx, y2:y+h+5, stroke:'#4a6379', 'stroke-width':1}, g);
+    txt(g, tx, y+h+17, String(t), 't-sml', {'text-anchor':'middle', style:'font-size:10.5px'});
+  });
+  txt(g, x+w, y-11, 'wavelength / nm', 't-sml', {'text-anchor':'end'});
+  const cap = txt(g, x, y+h+38, caption, 't-sml');
+  cap.setAttribute('style','font-size:12px');
+  return {x, y, w, h, mode, lines, cap, vertical:false, mask:null};
+}
+
+/* The transmitted spectrum stands on end, square across the beam and right in front of the
+   eye, so the light is seen to pass through it on its way out of the cloud. */
+function buildVStrip(host, id, box, label, cap1, cap2){
+  const g = el('g', {class:'spot', id}, host);
+  const {x, y, w, h} = box;
+  txt(g, x, y-14, label, 't-lab');
+  el('rect', {x, y, width:w, height:h, fill:'url(#gRainUp)'}, g);
+  const mask = el('g', {}, g);
+  const lines = el('g', {class:'lineMarks'}, g);
+  const tags = el('g', {class:'lineTags'}, g);
+  el('rect', {x, y, width:w, height:h, class:'strip-frame', rx:3}, g);
+  [400,500,600,700].forEach(t => {
+    const ty = lamPos(t, y, h);
+    el('line', {x1:x-6, y1:ty, x2:x, y2:ty, stroke:'#4a6379', 'stroke-width':1}, g);
+    txt(g, x-9, ty+3.5, String(t), 't-sml', {'text-anchor':'end', style:'font-size:10.5px'});
+  });
+  txt(g, x-9, y-6, 'nm', 't-sml', {'text-anchor':'end', style:'font-size:10.5px'});
+  txt(g, x-40, y+h+26, cap1, 't-sml', {style:'font-size:12px'});
+  txt(g, x-40, y+h+42, cap2, 't-sml', {style:'font-size:12px'});
+  return {x, y, w, h, mode:'dark', lines, mask, tags, vertical:true};
+}
+
+let strips = [];
+function buildCloud(){
+  const src = $('#cSource'), bm = $('#cBeam'), gas = $('#cGas'), eyes = $('#cEyes'), st = $('#cStrips');
+  [src,bm,gas,eyes,st,$('#cPhot')].forEach(n => n.innerHTML = '');
+
+  /* source */
+  if (srcMode === 'sun'){
+    el('circle', {cx:14, cy:300, r:120, fill:'url(#gSrc)'}, src);
+    el('path', {d:'M -10 150 A 150 150 0 0 1 -10 450 Z', fill:'#ffcf6b', opacity:'.92'}, src);
+    txt(src, 26, 104, 'the Sun\u2019s hot, dense surface', 't-lab');
+    txt(src, 26, 124, 'gives out every wavelength', 't-sml');
+  } else {
+    el('rect', {x:-6, y:216, width:74, height:168, rx:9, fill:'#5b6672', stroke:'#8d97a4', 'stroke-width':2}, src);
+    el('rect', {x:52, y:246, width:22, height:108, rx:4, fill:'#fff3d2'}, src);
+    el('circle', {cx:34, cy:300, r:34, fill:'url(#gSrc)'}, src);
+    txt(src, 4, 196, 'white light lamp', 't-lab');
+    txt(src, 4, 412, 'gives out every wavelength', 't-sml');
+  }
+  if (srcMode === 'lab'){
+    [-44, 0, 44].forEach(o => {
+      el('path', {d:'M 86 '+(300+o)+' h 40 m -9 -6 l 9 6 l -9 6', fill:'none', stroke:'#e7d6a8',
+                  'stroke-width':1.8, opacity:'.75'}, src);
+      el('path', {d:'M 700 '+(300+o)+' h 40 m -9 -6 l 9 6 l -9 6', fill:'none', stroke:'#e7d6a8',
+                  'stroke-width':1.8, opacity:'.75'}, src);
+    });
+    txt(src, 700, 224, 'emergent light', 't-sml');
+    txt(src, 86, 224, 'incident white light', 't-sml');
+  }
+
+  /* the filter glass, then the beam */
+  if (filt.k !== 'none'){
+    const c = wlCss((filt.lo+filt.hi)/2);
+    el('rect', {x:FILT_X, y:BY0-24, width:FILT_W, height:(BY1-BY0)+48, rx:4, fill:c, opacity:'.8',
+                stroke:'#cfe0ee', 'stroke-width':1.5}, src);
+    txt(src, FILT_X+FILT_W/2, BY0-34, filt.name.toLowerCase() + ' filter', 't-sml', {'text-anchor':'middle'});
+  }
+  el('rect', {x:118, y:BY0, width:VOUT.x-118, height:BY1-BY0, fill:'url(#gBeam)', filter:'url(#soft)'}, bm);
+
+  /* cloud */
+  el('ellipse', {cx:CXc, cy:CYc, rx:CRX, ry:CRY, fill:'url(#gCloud)'}, gas);
+  el('ellipse', {cx:CXc, cy:CYc, rx:CRX-2, ry:CRY-2, fill:'none', stroke:'#3f6284',
+                 'stroke-width':1.2, 'stroke-dasharray':'7 9', opacity:'.75'}, gas);
+  ATOMS.forEach(a => {
+    a.ring = el('circle', {cx:a.x, cy:a.y, r:9, fill:'none', stroke:'#f0b429', 'stroke-width':2, opacity:'0'}, gas);
+    a.dot  = el('circle', {cx:a.x, cy:a.y, r:3.6, fill:'#9fd2ff', opacity:'.85'}, gas);
+  });
+  txt(gas, CXc, CYc+CRY-12, gasLabel(), 't-lab', {'text-anchor':'middle', id:'gasLbl'});
+
+  /* eyes: one looking back through the cloud, one looking down on it from the side */
+  el('line', {x1:VOUT.x+VOUT.w+22, y1:CYc, x2:EYEX-52, y2:CYc, class:'sight'}, eyes);
+  eyeIcon(eyes, EYEX, CYc, 0);
+  txt(eyes, EYEX+10, CYc+56, 'looking back', 't-lab', {'text-anchor':'middle'});
+  txt(eyes, EYEX+10, CYc+74, 'towards the source', 't-sml', {'text-anchor':'middle'});
+  el('line', {x1:CXc, y1:SIDEY+58, x2:CXc, y2:CYc-CRY, class:'sight'}, eyes);
+  eyeIcon(eyes, CXc, SIDEY, -90);
+  txt(eyes, CXc+70, SIDEY-4, 'looking down at the cloud', 't-lab');
+  txt(eyes, CXc+70, SIDEY+14, 'from the side', 't-sml');
+
+  /* strips: both beam spectra stand across the beam, the side view lies flat below the cloud */
+  strips = [
+    buildVStrip(st, 'sp0', VIN, 'Before the cloud',
+      filt.k === 'none' ? 'every wavelength,'   : 'only the ' + filt.name.toLowerCase() + ' band',
+      filt.k === 'none' ? 'an unbroken band'    : 'gets past the filter'),
+    buildStrip (st, 1, 'bright', 'From the side', 'only the wavelengths the gas gave back out'),
+    buildVStrip(st, 'sp2', VOUT, 'After the cloud', 'the same band, missing',
+      elm.mode === 'levels' ? 'the marked jumps' : 'the marked gaps')
+  ];
+  rebuildLines();
+  paintFilter();
+}
+
+function gasLabel(){
+  return srcMode === 'sun'
+    ? 'the Sun\u2019s cooler outer gas \u2014 atoms of ' + elm.name.toLowerCase()
+    : 'a cloud of cool ' + elm.name.toLowerCase() + ' gas';
+}
+
+/* dark / bright line marks, redrawn when the element changes */
+/* the jump behind a line, short enough to sit inside the strip */
+function jumpTag(L){
+  if (elm.mode !== 'levels') return L.dE.toFixed(2) + ' eV';
+  const bare = t => t.replace(/^n = /, '');
+  return (/^n = /.test(L.lowName) ? 'n ' : '') + bare(L.lowName) + '\u2192' + bare(L.upName);
+}
+function rebuildLines(){
+  strips[1].lines.innerHTML = ''; strips[2].lines.innerHTML = '';
+  if (strips[2].tags) strips[2].tags.innerHTML = '';
+  /* work out where each label goes first, in wavelength order, so the leaders never cross */
+  (function planTags(){
+    const sD = strips[2];
+    const placed = [];
+    elm.lines.slice().sort((a,b) => a.lam-b.lam).forEach(L => {
+      const yd = lamPos(L.lam, sD.y, sD.h);
+      let ty = yd;
+      while (placed.some(p => Math.abs(p - ty) < 16)) ty += 16;
+      L.tagY = ty < sD.y + sD.h + 34 ? ty : null;
+      if (L.tagY !== null) placed.push(ty);
+    });
+  })();
+  elm.lines.forEach(L => {
+    const sD = strips[2], sB = strips[1];
+    const yd = lamPos(L.lam, sD.y, sD.h), xb = lamPos(L.lam, sB.x, sB.w);
+    L.darkHalo = el('rect', {x:sD.x, y:yd-5,   width:sD.w, height:10,  fill:'#05080b', opacity:'0', filter:'url(#soft2)'}, sD.lines);
+    L.dark     = el('rect', {x:sD.x, y:yd-1.6, width:sD.w, height:3.2, fill:'#05080b', opacity:'0'}, sD.lines);
+    L.briHalo  = el('rect', {x:xb-5, y:sB.y, width:10, height:sB.h, fill:wlCss(L.lam), opacity:'0', filter:'url(#soft2)'}, sB.lines);
+    L.bright   = el('rect', {x:xb-1.6, y:sB.y, width:3.2, height:sB.h, fill:wlCss(L.lam), opacity:'0'}, sB.lines);
+    L.tag = null;
+    if (sD.tags && L.tagY !== null && L.tagY !== undefined){
+      const x0 = sD.x + sD.w, x1 = x0 + 26, ty = L.tagY;
+      const g = el('g', {opacity:'0'}, sD.tags);
+      el('path', {d:'M '+x0+' '+yd.toFixed(1)+' H '+(x0+12)+' L '+x1+' '+ty.toFixed(1)+' h 6',
+                  fill:'none', stroke:'#6f889e', 'stroke-width':1}, g);
+      txt(g, x1+10, ty+4, jumpTag(L), 't-sml',
+          {style:'font-size:12px;font-weight:600;fill:#dbe6ee'});
+      L.tag = g;
+    }
+  });
+  paintLines();
+}
+function paintFilter(){
+  [strips[0], strips[2]].forEach(sp => {
+    if (!sp || !sp.mask) return;
+    sp.mask.innerHTML = '';
+    if (filt.k === 'none') return;
+    const yLo = lamPos(filt.lo, sp.y, sp.h), yHi = lamPos(filt.hi, sp.y, sp.h);
+    el('rect', {x:sp.x, y:sp.y, width:sp.w, height:Math.max(0, yLo-sp.y), fill:'#05080b', opacity:'.9'}, sp.mask);
+    el('rect', {x:sp.x, y:yHi, width:sp.w, height:Math.max(0, sp.y+sp.h-yHi), fill:'#05080b', opacity:'.9'}, sp.mask);
+  });
+}
+function paintLines(){
+  elm.lines.forEach(L => {
+    const d = 1 - Math.exp(-L.abs/34), b = 1 - Math.exp(-L.emit/34);
+    if (!L.dark) return;
+    L.dark.setAttribute('opacity', (d*0.96).toFixed(3));
+    L.darkHalo.setAttribute('opacity', (d*0.55).toFixed(3));
+    L.bright.setAttribute('opacity', (b*0.98).toFixed(3));
+    L.briHalo.setAttribute('opacity', (b*0.6).toFixed(3));
+    if (L.tag) L.tag.setAttribute('opacity', clamp((d-0.22)/0.45, 0, 1).toFixed(3));
+    if (L.aDark){
+      L.aDark.setAttribute('opacity', (d*0.96).toFixed(3));
+      L.aDarkHalo.setAttribute('opacity', (d*0.55).toFixed(3));
+    }
+  });
+}
+
+/* ---------- photon engine ---------- */
+const PH = [];            // live photons
+let running = false, rate = 26, spawnAcc = 0, burst = 0;
+const tally = {match:0, abs:0, fwd:0};
+const CONE = 8*Math.PI/180;
+const gPhot = $('#cPhot');
+
+function bandLines(){
+  return elm.lines.filter(L => L.lam >= filt.lo && L.lam <= filt.hi);
+}
+function newPhoton(){
+  const p = {state:'fly', lam:0, line:null, t:0};
+  const band = bandLines();
+  if (band.length && (showOnly || Math.random() < 0.30)){
+    p.line = band[Math.floor(Math.random()*band.length)];
+    p.lam = p.line.lam;
+  } else {
+    if (showOnly) return;                 /* nothing in this band can excite the gas */
+    let lam, tries = 0;
+    do { lam = rnd(filt.lo, filt.hi); tries++; }
+    while (tries < 6 && elm.lines.some(L => Math.abs(L.lam-lam) < 6));
+    p.lam = lam;
+  }
+  p.x = SX; p.y = rnd(BY0+10, BY1-10);
+  p.vx = 250; p.vy = 0;
+  p.col = wlCss(p.lam);
+  if (p.line){ p.target = nearestAtom(p.y); tally.match++; }
+  p.node = el('line', {x1:p.x, y1:p.y, x2:p.x-13, y2:p.y, stroke:p.col, 'stroke-width':3,
+                       'stroke-linecap':'round', opacity:'.95'}, gPhot);
+  PH.push(p);
+}
+function nearestAtom(y){
+  let best = ATOMS[0], bd = 1e9;
+  for (const a of ATOMS){ const d = Math.abs(a.y-y) + Math.abs(a.x-CXc)*0.15; if (d < bd){ bd = d; best = a; } }
+  return best;
+}
+function killPhoton(p){
+  if (p.node && p.node.parentNode) p.node.parentNode.removeChild(p.node);
+  const i = PH.indexOf(p); if (i >= 0) PH.splice(i,1);
+}
+function emitFrom(p){
+  const a = p.target;
+  /* fair isotropic direction in three dimensions; the eye covers a cone of CONE */
+  const u = Math.random()*2-1, ph = Math.random()*2*Math.PI, s = Math.sqrt(1-u*u);
+  const vx3 = s*Math.cos(ph), hit = Math.acos(clamp(vx3,-1,1)) < CONE;
+  let ang = Math.random()*2*Math.PI;
+  if (hit) ang = rnd(-CONE, CONE);
+  const q = {state:'out', lam:p.lam, line:p.line, col:p.col, x:a.x, y:a.y, hit,
+             vx:190*Math.cos(ang), vy:190*Math.sin(ang), t:0};
+  q.node = el('line', {x1:q.x, y1:q.y, x2:q.x, y2:q.y, stroke:q.col, 'stroke-width':3,
+                       'stroke-linecap':'round', opacity:'.95'}, gPhot);
+  PH.push(q);
+  p.line.emit++; tally.abs++; if (hit) tally.fwd++;
+  addRose(ang, hit);
+  a.flash = 1;
+  paintLines(); updateTally();
+}
+function stepPhotons(dt){
+  for (let i=PH.length-1; i>=0; i--){
+    const p = PH[i];
+    p.t += dt;
+    if (p.state === 'fly'){
+      const tx = p.line ? p.target.x : BEAMEND;
+      p.x += p.vx*dt;
+      if (p.line && p.x >= tx){
+        p.x = tx; p.y += (p.target.y-p.y)*0.6;
+        p.line.abs++;
+        p.state = 'wait'; p.t = 0;
+        p.node.setAttribute('opacity','0');
+        continue;
+      }
+      if (p.x > BEAMEND){ killPhoton(p); continue; }
+      p.node.setAttribute('x1', p.x); p.node.setAttribute('x2', p.x-13);
+      p.node.setAttribute('y1', p.y); p.node.setAttribute('y2', p.y);
+    } else if (p.state === 'wait'){
+      if (p.t > 0.22){ emitFrom(p); killPhoton(p); }
+    } else {
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      const k = 13/Math.hypot(p.vx,p.vy);
+      p.node.setAttribute('x1', p.x); p.node.setAttribute('y1', p.y);
+      p.node.setAttribute('x2', p.x-p.vx*k); p.node.setAttribute('y2', p.y-p.vy*k);
+      const out = p.x < -20 || p.x > 1020 || p.y < -20 || p.y > 670;
+      if (out) killPhoton(p);
+      else if (p.t > 0.7) p.node.setAttribute('opacity', String(Math.max(0, 1.6-p.t)));
+    }
+  }
+  for (const a of ATOMS){
+    if (a.flash > 0){
+      a.flash = Math.max(0, a.flash - dt*2.2);
+      a.ring.setAttribute('opacity', a.flash.toFixed(2));
+      a.ring.setAttribute('r', (9 + (1-a.flash)*9).toFixed(1));
+    }
+  }
+}
+/* =====================================================================
+   Filters and what to show. A coloured filter after the source lets only
+   one band of wavelengths reach the gas, which is the quickest way to see
+   that a photon has to match a gap rather than merely carry enough energy.
+   ===================================================================== */
+const FILTERS = [
+  {k:'none',   name:'No filter', lo:LAM0, hi:LAM1},
+  {k:'violet', name:'Violet',    lo:380,  hi:450},
+  {k:'blue',   name:'Blue',      lo:450,  hi:495},
+  {k:'cyan',   name:'Cyan',      lo:480,  hi:520},
+  {k:'green',  name:'Green',     lo:495,  hi:570},
+  {k:'yellow', name:'Yellow',    lo:565,  hi:600},
+  {k:'red',    name:'Red',       lo:600,  hi:LAM1}
+];
+let filt = FILTERS[0], showOnly = false;
+
+function setFilter(k){
+  filt = FILTERS.find(f => f.k === k) || FILTERS[0];
+  Array.from($('#barFilt').children).forEach(b => b.classList.toggle('sel', b.dataset.k === filt.k));
+  buildCloud();
+  clearAll();                 /* the spectra built up under the old filter no longer apply */
+  updateBeamNote();
+}
+function setShow(v){
+  showOnly = (v === 'match');
+  Array.from($('#segShow').children).forEach(b => b.classList.toggle('sel', b.dataset.v === v));
+  while (PH.length) killPhoton(PH[0]);
+  updateBeamNote();
+}
+function updateBeamNote(){
+  const band = bandLines(), nm = elm.name.toLowerCase();
+  const list = ls => '<span class="lam">' + ls.map(L => el4(L.lam)).join(', ') + ' nm</span>';
+  let h;
+  if (filt.k === 'none')
+    h = 'Every wavelength reaches the gas. ' + (elm.lines.length === 1 ? 'The one line of ' : 'The lines of ')
+      + nm + ' sit at ' + list(elm.lines) + ', so those are the only photons that can be absorbed.';
+  else if (band.length)
+    h = '<span class="yes">' + band.length + ' line' + (band.length === 1 ? '' : 's') + ' of ' + nm
+      + ' get' + (band.length === 1 ? 's' : '') + ' through this filter:</span> ' + list(band)
+      + '. Only those photons can be absorbed.';
+  else
+    h = '<span class="no">No line of ' + nm + ' lies in this band.</span> Every photon through the filter '
+      + 'crosses the cloud untouched and no dark line forms \u2014 carrying plenty of energy is not enough, '
+      + 'it has to match a gap.';
+  if (showOnly) h += ' Photons that cannot be absorbed are hidden.';
+  $('#beamNote').innerHTML = h;
+}
+const ICON_SUN =
+  '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">'
++ '<circle cx="12" cy="12" r="4.6" fill="#ffc861"/>'
++ '<g stroke="#ffc861" stroke-width="1.9" stroke-linecap="round">'
++ '<path d="M12 1.6v2.8M12 19.6v2.8M1.6 12h2.8M19.6 12h2.8'
++ 'M4.7 4.7l2 2M17.3 17.3l2 2M19.3 4.7l-2 2M6.7 17.3l-2 2"/></g></svg>';
+const ICON_LAMP =
+  '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">'
++ '<path d="M12 2.4a6.6 6.6 0 0 0-3.9 11.9c.6.45.95 1.05.95 1.7v.5h5.9v-.5c0-.65.35-1.25.95-1.7A6.6 6.6 0 0 0 12 2.4Z"'
++ ' fill="none" stroke="#dbe6ee" stroke-width="1.7"/>'
++ '<path d="M9.2 18.5h5.6M10.1 21h3.8" stroke="#dbe6ee" stroke-width="1.7" stroke-linecap="round"/>'
++ '<path d="M9.7 11.4l1.4-2.4 1.1 2.6 1.2-2.4 1 1.9" fill="none" stroke="#ffc861" stroke-width="1.5"'
++ ' stroke-linejoin="round"/></svg>';
+(function buildSourceButtons(){
+  const bar = $('#barSrc');
+  [['sun', ICON_SUN, 'Light from the Sun'], ['lab', ICON_LAMP, 'A filament lamp in the lab']]
+    .forEach(([m, svg, tip]) => {
+      const b = document.createElement('button');
+      b.dataset.m = m; b.title = tip; b.setAttribute('aria-label', tip);
+      b.innerHTML = svg;
+      b.addEventListener('click', () => { if (step >= 0) endWalk(); setSource(m); });
+      bar.appendChild(b);
+    });
+})();
+(function buildFilterButtons(){
+  const bar = $('#barFilt');
+  FILTERS.forEach(f => {
+    const c = document.createElement('button');
+    c.dataset.k = f.k;
+    c.title = f.k === 'none' ? 'No filter' : f.name + ' filter';
+    c.innerHTML = (f.k === 'none' ? '' : '<span class="dot" style="background:'
+                 + wlCss((f.lo+f.hi)/2) + '"></span>') + (f.k === 'none' ? 'None' : f.name);
+    c.addEventListener('click', () => setFilter(f.k));
+    bar.appendChild(c);
+  });
+})();
+
+function updateTally(){
+  $('#tMatch').textContent = tally.match;
+  $('#tAbs').textContent   = tally.abs;
+  $('#tFwd').textContent   = tally.fwd;
+  $('#tGone').textContent  = tally.abs - tally.fwd;
+  $('#tFoot').innerHTML = tally.abs
+    ? 'So far <b>' + tally.fwd + ' of ' + tally.abs + '</b> re-emitted photons \u2014 '
+      + (100*tally.fwd/tally.abs).toFixed(1) + '% \u2014 left inside the 8\u00b0 cone that reaches the eye. '
+      + 'Every other direction takes the light out of the beam.'
+    : FOOT0;
+}
+const FOOT0 = 'The eye here covers a cone of 8\u00b0, about 1 direction in 200. Matching photons are sent '
+  + 'more often than they would really arrive, so the lines build up while you watch.';
+function clearAll(){
+  while (PH.length) killPhoton(PH[0]);
+  tally.match = tally.abs = tally.fwd = 0;
+  for (const k of ORDER) ELEMENTS[k].lines.forEach(L => { L.abs = 0; L.emit = 0; });
+  rose.length = 0; if (roseG) roseG.innerHTML = '';
+  roseCount = 0; roseHit = 0;
+  paintLines(); updateTally(); updateRoseText();
+}
+
+/* =====================================================================
+   Scene 3 — one atom: absorb, then re-emit in any direction
+   ===================================================================== */
+const A = {
+  colX:40, colW:62, colY0:170, colY1:548,
+  lx0:262, lx1:566, lowY:468, topY:150,
+  roseX:832, roseY:246, roseR:98,
+  stX:250, stY:566, stW:560, stH:34
+};
+let lineSel = 0, aState = 'idle', aT = 0, aQueue = 0, aPhot = null, aElec = null, aAng = 0, aHit = false;
+let roseG = null, roseCount = 0, roseHit = 0;
+const rose = [];
+
+function levelY(dE, maxE){ return A.lowY - (dE/maxE)*(A.lowY-A.topY); }
+function maxGap(){ return Math.max.apply(null, elm.lines.map(L => L.dE))*1.12; }
+
+function buildAtom(){
+  const gr = $('#aRain'), gw = $('#aWell'), go = $('#aRose'), gs = $('#aStrip');
+  [gr,gw,go,gs,$('#aFx')].forEach(n => n.innerHTML = '');
+
+  /* defs: vertical rainbow */
+  const defs = el('defs', {}, gr);
+  const lg = el('linearGradient', {id:'gRainV', x1:'0', y1:'0', x2:'0', y2:'1'}, defs);
+  const lh = el('linearGradient', {id:'gRainA', x1:'0', y1:'0', x2:'1', y2:'0'}, defs);
+  for (let w=LAM0; w<=LAM1; w+=10){
+    const off = ((w-LAM0)/(LAM1-LAM0)*100).toFixed(2)+'%';
+    el('stop', {offset:off, 'stop-color':wlCss(w)}, lg);
+    el('stop', {offset:off, 'stop-color':wlCss(w)}, lh);
+  }
+  const rg = el('radialGradient', {id:'gSrcA', cx:'.5', cy:'.5', r:'.5'}, defs);
+  el('stop', {offset:'0', 'stop-color':'#fff6df'}, rg);
+  el('stop', {offset:'.55', 'stop-color':'#ffcf6b'}, rg);
+  el('stop', {offset:'1', 'stop-color':'#e08b1e', 'stop-opacity':'0'}, rg);
+  const fl = el('filter', {id:'softA', x:'-60%', y:'-60%', width:'220%', height:'220%'}, defs);
+  el('feGaussianBlur', {stdDeviation:'1.6'}, fl);
+
+  /* the light source itself, in the corner */
+  if (srcMode === 'sun'){
+    el('circle', {cx:72, cy:84, r:40, fill:'url(#gSrcA)'}, gr);
+    el('circle', {cx:72, cy:84, r:22, fill:'#ffcf6b'}, gr);
+    txt(gr, 30, 36, 'light from the Sun', 't-lab');
+  } else {
+    el('rect', {x:46, y:56, width:52, height:56, rx:7, fill:'#5b6672', stroke:'#8d97a4', 'stroke-width':2}, gr);
+    el('rect', {x:62, y:104, width:20, height:14, rx:3, fill:'#fff3d2'}, gr);
+    el('circle', {cx:72, cy:110, r:22, fill:'url(#gSrcA)'}, gr);
+    txt(gr, 30, 36, 'white light lamp', 't-lab');
+  }
+  el('path', {d:'M 71 130 v 28 m -7 -8 l 7 8 l 7 -8', fill:'none', stroke:'#e7d6a8', 'stroke-width':2, opacity:'.85'}, gr);
+  el('rect', {x:A.colX, y:A.colY0, width:A.colW, height:A.colY1-A.colY0, fill:'url(#gRainV)', rx:4}, gr);
+  el('rect', {x:A.colX, y:A.colY0, width:A.colW, height:A.colY1-A.colY0, class:'strip-frame', rx:4}, gr);
+  txt(gr, 22, A.colY1+22, 'every wavelength is', 't-sml');
+  txt(gr, 22, A.colY1+38, 'arriving at the atom', 't-sml');
+
+  /* ladder */
+  const mx = maxGap();
+  txt(gw, A.lx0, 100, 'One ' + elm.name.toLowerCase() + ' atom', 't-ttl');
+  txt(gw, A.lx0, 122, elm.mode === 'levels' ? 'energy levels of the outer electron'
+                                            : 'the levels behind each line', 't-sml');
+
+  el('line', {x1:A.lx0, y1:A.lowY, x2:A.lx1, y2:A.lowY, class:'lvl low'}, gw);
+  txt(gw, A.lx0-10, A.lowY+5, elm.mode === 'levels' ? elm.lowName : 'starting level', 't-lab', {'text-anchor':'end'});
+  if (elm.mode === 'levels')
+    txt(gw, A.lx1+12, A.lowY+5, eV(elm.lines[0].lowE) + ' eV', 't-num');
+
+  elm.lines.forEach((L,i) => {
+    const y = levelY(L.dE, mx);
+    L.y = y;
+    L.lvlNode = el('line', {x1:A.lx0, y1:y, x2:A.lx1, y2:y, class:'lvl'}, gw);
+    L.lvlName = txt(gw, A.lx0-10, y+5, elm.mode === 'levels' ? L.upName : 'level ' + (i+1), 't-lab', {'text-anchor':'end'});
+    L.lvlVal  = txt(gw, A.lx1+12, y+5,
+      elm.mode === 'levels' ? eV(L.upE) + ' eV' : '\u0394E = ' + L.dE.toFixed(2) + ' eV', 't-num');
+
+    const ax = A.lx0 + 34 + i*((A.lx1-A.lx0-70)/Math.max(1,elm.lines.length-1 || 1));
+    const g = el('g', {class:'tr', 'data-i':i, style:'cursor:pointer'}, gw);
+    el('line', {x1:ax, y1:A.lowY, x2:ax, y2:y, stroke:'transparent', 'stroke-width':22}, g);
+    L.shaft = el('line', {x1:ax, y1:A.lowY, x2:ax, y2:y+9, stroke:wlCss(L.lam), 'stroke-width':2.6}, g);
+    L.head  = el('path', {d:'M '+(ax-5)+' '+(y+11)+' L '+ax+' '+y+' L '+(ax+5)+' '+(y+11)+' Z', fill:wlCss(L.lam)}, g);
+    L.ax = ax;
+    g.addEventListener('click', () => selectLine(i));
+    L.node = g;
+  });
+
+  /* the deep ground state, drawn honestly as far below */
+  if (elm.mode === 'levels' && elm.low > 0){
+    const yb = A.lowY + 52;
+    el('path', {d:'M '+A.lx0+' '+(A.lowY+24)+' l 14 -8 l 14 16 l 14 -16 l 14 16 l 14 -8',
+                fill:'none', stroke:'#4a6379', 'stroke-width':1.4}, gw);
+    el('line', {x1:A.lx0, y1:yb, x2:A.lx0+150, y2:yb, class:'lvl', opacity:'.55'}, gw);
+    txt(gw, A.lx0+160, yb+5, elm.levels[0].name + ' is much further down \u2014 jumps from there need ultraviolet',
+        't-sml');
+  }
+
+  /* electron */
+  aElec = el('circle', {cx:A.lx0+16, cy:A.lowY, r:8, fill:'#9fd2ff', stroke:'#e7f4ff', 'stroke-width':1.5}, gw);
+
+  /* direction rose */
+  const R = A.roseR;
+  el('circle', {cx:A.roseX, cy:A.roseY, r:R, class:'rose-ring'}, go);
+  el('circle', {cx:A.roseX, cy:A.roseY, r:R*.66, class:'rose-ring', opacity:'.6'}, go);
+  el('circle', {cx:A.roseX, cy:A.roseY, r:R*.33, class:'rose-ring', opacity:'.4'}, go);
+  for (let k=0;k<12;k++){
+    const t = k*Math.PI/6;
+    el('line', {x1:A.roseX+Math.cos(t)*(R-7), y1:A.roseY+Math.sin(t)*(R-7),
+                x2:A.roseX+Math.cos(t)*R,     y2:A.roseY+Math.sin(t)*R, class:'rose-tick'}, go);
+  }
+  const c0 = -CONE, c1 = CONE;
+  el('path', {d:'M '+A.roseX+' '+A.roseY+' L '+(A.roseX+Math.cos(c0)*R)+' '+(A.roseY+Math.sin(c0)*R)
+                 +' A '+R+' '+R+' 0 0 1 '+(A.roseX+Math.cos(c1)*R)+' '+(A.roseY+Math.sin(c1)*R)+' Z',
+              class:'cone'}, go);
+  el('line', {x1:A.roseX, y1:A.roseY, x2:A.roseX+Math.cos(c0)*R, y2:A.roseY+Math.sin(c0)*R, class:'cone-edge'}, go);
+  el('line', {x1:A.roseX, y1:A.roseY, x2:A.roseX+Math.cos(c1)*R, y2:A.roseY+Math.sin(c1)*R, class:'cone-edge'}, go);
+  for (let k = 0; k < 16; k++)
+    if (k % 4) arrowAt(go, A.roseX, A.roseY, k*Math.PI/8, R*0.16, R*0.84, '#7cc4ff', 0.16, 1.2);
+  el('circle', {cx:A.roseX, cy:A.roseY, r:5, fill:'#9fd2ff'}, go);
+  txt(go, A.roseX, A.roseY-R-36, 'Distribution of emission directions', 't-lab', {'text-anchor':'middle'});
+  txt(go, A.roseX, A.roseY-R-18, 'one dot for every photon the atom sends out', 't-sml', {'text-anchor':'middle'});
+  arrowAt(go, A.roseX, A.roseY, 0, R+10, R+40, '#f0b429', 0.95, 2.4);
+  txt(go, A.roseX+R+25, A.roseY+22, 'to your eye', 't-amb', {'text-anchor':'middle'});
+  arrowAt(go, A.roseX - R - 46, A.roseY, 0, 0, 34, '#e7d6a8', 0.9, 2.4);
+  txt(go, A.roseX-R-29, A.roseY+20, 'photon', 't-sml', {'text-anchor':'middle'});
+  txt(go, A.roseX-R-29, A.roseY+34, 'came in', 't-sml', {'text-anchor':'middle'});
+  roseG = el('g', {}, go);
+  rose.forEach(d => plotRose(d.a));
+  roseTxt1 = txt(go, A.roseX, A.roseY+R+34, '', 't-lab', {'text-anchor':'middle'});
+  roseTxt2 = txt(go, A.roseX, A.roseY+R+54, '', 't-sml', {'text-anchor':'middle'});
+  roseTxt3 = txt(go, A.roseX, A.roseY+R+74, '', 't-sml', {'text-anchor':'middle'});
+  updateRoseText();
+
+  /* the forward beam strip under the ladder */
+  txt(gs, A.stX, A.stY-11, 'The light still going straight on', 't-lab');
+  el('rect', {x:A.stX, y:A.stY, width:A.stW, height:A.stH, fill:'url(#gRainA)'}, gs);
+  const marks = el('g', {}, gs);
+  el('rect', {x:A.stX, y:A.stY, width:A.stW, height:A.stH, class:'strip-frame', rx:3}, gs);
+  [400,500,600,700].forEach(t => {
+    const tx = lamPos(t, A.stX, A.stW);
+    el('line', {x1:tx, y1:A.stY+A.stH, x2:tx, y2:A.stY+A.stH+5, stroke:'#4a6379', 'stroke-width':1}, gs);
+    txt(gs, tx, A.stY+A.stH+17, String(t), 't-sml', {'text-anchor':'middle', style:'font-size:10.5px'});
+  });
+  txt(gs, A.stX+A.stW, A.stY-11, 'wavelength / nm', 't-sml', {'text-anchor':'end'});
+  elm.lines.forEach(L => {
+    const x = lamPos(L.lam, A.stX, A.stW);
+    L.aDarkHalo = el('rect', {x:x-5, y:A.stY, width:10, height:A.stH, fill:'#05080b', opacity:'0', filter:'url(#softA)'}, marks);
+    L.aDark     = el('rect', {x:x-1.6, y:A.stY, width:3.2, height:A.stH, fill:'#05080b', opacity:'0'}, marks);
+  });
+  buildLineButtons();
+  selectLine(Math.min(lineSel, elm.lines.length-1));
+  paintLines();
+}
+
+let roseTxt1, roseTxt2, roseTxt3;
+/* a short arrow from (cx,cy) along angle t, between radii r0 and r1 */
+function arrowAt(parent, cx, cy, t, r0, r1, col, op, w){
+  const x0 = cx+Math.cos(t)*r0, y0 = cy+Math.sin(t)*r0;
+  const x1 = cx+Math.cos(t)*r1, y1 = cy+Math.sin(t)*r1;
+  const a = 6.5, sp = 0.44, f = n => n.toFixed(1);
+  el('path', {d:'M '+f(x0)+' '+f(y0)+' L '+f(x1)+' '+f(y1)
+                +' M '+f(x1-Math.cos(t-sp)*a)+' '+f(y1-Math.sin(t-sp)*a)+' L '+f(x1)+' '+f(y1)
+                +' L '+f(x1-Math.cos(t+sp)*a)+' '+f(y1-Math.sin(t+sp)*a),
+              fill:'none', stroke:col, 'stroke-width':w, opacity:op,
+              'stroke-linecap':'round', 'stroke-linejoin':'round'}, parent);
+}
+function plotRose(a){
+  if (!roseG) return;
+  const r = A.roseR*(0.30 + Math.random()*0.62);
+  el('circle', {cx:(A.roseX+Math.cos(a)*r).toFixed(1), cy:(A.roseY+Math.sin(a)*r).toFixed(1),
+                r:2.3, fill:'#7cc4ff', opacity:'.75'}, roseG);
+}
+function addRose(a, hit){
+  rose.push({a}); roseCount++; if (hit) roseHit++;
+  if (rose.length > 420) rose.shift();
+  plotRose(a);
+  if (roseG && roseG.childNodes.length > 420) roseG.removeChild(roseG.firstChild);
+  updateRoseText();
+}
+function updateRoseText(){
+  if (!roseTxt1) return;
+  roseTxt1.textContent = roseCount + ' photon' + (roseCount === 1 ? '' : 's') + ' given out';
+  roseTxt2.textContent = roseHit + ' of them left inside the 8\u00b0 cone towards the eye';
+  roseTxt3.textContent = roseCount ? 'that is ' + (100*roseHit/roseCount).toFixed(1) + '% \u2014 the rest miss your eye'
+                                   : 'every direction is equally likely';
+}
+
+function buildLineButtons(){
+  const g = $('#segLine'); g.innerHTML = '';
+  elm.lines.forEach((L,i) => {
+    const b = document.createElement('button');
+    b.innerHTML = el4(L.lam) + ' nm';
+    b.style.borderLeft = '4px solid ' + wlCss(L.lam);
+    b.dataset.i = i;
+    b.addEventListener('click', () => selectLine(i));
+    g.appendChild(b);
+  });
+}
+function selectLine(i){
+  lineSel = i;
+  const L = elm.lines[i];
+  elm.lines.forEach((M,j) => {
+    if (!M.shaft) return;
+    const on = j === i;
+    M.shaft.setAttribute('stroke-width', on ? 5 : 2.6);
+    M.shaft.setAttribute('opacity', on ? 1 : .38);
+    M.head.setAttribute('opacity', on ? 1 : .38);
+    M.lvlNode.setAttribute('opacity', on ? 1 : .5);
+    M.lvlName.setAttribute('opacity', on ? 1 : .5);
+    M.lvlVal.setAttribute('opacity', on ? 1 : .5);
+  });
+  Array.from($('#segLine').children).forEach((b,j) => b.classList.toggle('sel', j === i));
+  $('#atomHint').innerHTML = 'Gap = <b>' + L.dE.toFixed(2) + ' eV</b>. That is one frequency, '
+    + (L.dE/4.135667e-15/1e14).toFixed(2) + ' \u00d7 10<sup>14</sup> Hz, and so one wavelength, <b>'
+    + el4(L.lam) + ' nm</b>.';
+}
+
+/* ---------- the one-atom sequence ---------- */
+const colY = lam => A.colY0 + (clamp(lam,LAM0,LAM1)-LAM0)/(LAM1-LAM0)*(A.colY1-A.colY0);
+function startAtomRun(n){
+  aQueue = Math.max(aQueue, n);
+  if (aState === 'idle') nextAtomRun();
+}
+function nextAtomRun(){
+  if (aQueue <= 0){ aState = 'idle'; return; }
+  aQueue--;
+  const L = elm.lines[lineSel];
+  aState = 'in'; aT = 0;
+  const x0 = A.colX + A.colW, y0 = colY(L.lam);
+  aPhot = el('line', {x1:x0, y1:y0, x2:x0-16, y2:y0, stroke:wlCss(L.lam), 'stroke-width':3.4,
+                      'stroke-linecap':'round'}, $('#aFx'));
+  aPhot.from = [x0,y0]; aPhot.to = [L.ax, A.lowY];
+}
+function stepAtom(dt){
+  if (aState === 'idle') return;
+  const L = elm.lines[lineSel], fast = aQueue > 0 ? 0.42 : 1;
+  aT += dt;
+  if (aState === 'in'){
+    const T = 0.85*fast, u = clamp(aT/T, 0, 1);
+    const [x0,y0] = aPhot.from, [x1,y1] = aPhot.to;
+    const x = x0 + (x1-x0)*u, y = y0 + (y1-y0)*u;
+    const dx = x1-x0, dy = y1-y0, k = 16/Math.hypot(dx,dy);
+    aPhot.setAttribute('x1', x); aPhot.setAttribute('y1', y);
+    aPhot.setAttribute('x2', x-dx*k); aPhot.setAttribute('y2', y-dy*k);
+    if (u >= 1){
+      aPhot.remove(); aPhot = null;
+      L.abs++; paintLines();
+      aState = 'up'; aT = 0;
+      flashRing(L.ax, A.lowY);
+    }
+  } else if (aState === 'up'){
+    const T = 0.45*fast, u = clamp(aT/T, 0, 1);
+    aElec.setAttribute('cy', A.lowY + (L.y-A.lowY)*(u*u*(3-2*u)));
+    aElec.setAttribute('cx', A.lx0+16 + (L.ax-A.lx0-16)*u);
+    if (u >= 1){ aState = 'hold'; aT = 0; }
+  } else if (aState === 'hold'){
+    if (aT > 0.40*fast){
+      aState = 'down'; aT = 0;
+      const u = Math.random()*2-1, ph = Math.random()*2*Math.PI, s = Math.sqrt(1-u*u);
+      aHit = Math.acos(clamp(s*Math.cos(ph),-1,1)) < CONE;
+      aAng = aHit ? rnd(-CONE, CONE) : Math.random()*2*Math.PI;
+      const px = L.ax, py = L.y;
+      aPhot = el('line', {x1:px, y1:py, x2:px, y2:py, stroke:wlCss(L.lam), 'stroke-width':3.4,
+                          'stroke-linecap':'round'}, $('#aFx'));
+      aPhot.from = [px,py];
+      L.emit++; addRose(aAng, aHit);
+    }
+  } else if (aState === 'down'){
+    const T = 0.55*fast, u = clamp(aT/T, 0, 1);
+    aElec.setAttribute('cy', L.y + (A.lowY-L.y)*(u*u*(3-2*u)));
+    aElec.setAttribute('cx', L.ax + (A.lx0+16-L.ax)*u);
+    if (aPhot){
+      const d = u*300, [px,py] = aPhot.from;
+      const x = px + Math.cos(aAng)*d, y = py + Math.sin(aAng)*d;
+      aPhot.setAttribute('x1', x); aPhot.setAttribute('y1', y);
+      aPhot.setAttribute('x2', x-Math.cos(aAng)*16); aPhot.setAttribute('y2', y-Math.sin(aAng)*16);
+      aPhot.setAttribute('opacity', String(clamp(1.4-u*1.4, 0, 1)));
+    }
+    if (u >= 1){
+      if (aPhot){ aPhot.remove(); aPhot = null; }
+      aState = 'idle';
+      if (aQueue > 0) nextAtomRun();
+    }
+  }
+}
+function flashRing(x, y){
+  const r = el('circle', {cx:x, cy:y, r:9, fill:'none', stroke:'#f0b429', 'stroke-width':2.4}, $('#aFx'));
+  let t = 0;
+  const tick = () => {
+    t += 0.05;
+    r.setAttribute('r', 9+t*46); r.setAttribute('opacity', String(Math.max(0,1-t)));
+    if (t < 1) requestAnimationFrame(tick); else r.remove();
+  };
+  requestAnimationFrame(tick);
+}
+
+/* =====================================================================
+   Camera. Both diagram scenes are one SVG each, so panning and zooming
+   is just an eased tween of the viewBox.
+   ===================================================================== */
+const CAM = { cloud:{cur:[0,0,1000,650], from:null, to:null, t:1, dur:1},
+              atom: {cur:[0,0,1000,650], from:null, to:null, t:1, dur:1} };
+const FULL = [0,0,1000,650];
+function focusOn(cx, cy, z){
+  const w = 1000/z, h = 650/z;
+  return [cx-w/2, cy-h/2, w, h];
+}
+function camTo(which, r, dur){
+  const c = CAM[which]; if (!c) return;
+  if (reduce || !dur){ c.cur = r.slice(); c.t = 1; applyCam(which); return; }
+  c.from = c.cur.slice(); c.to = r.slice(); c.t = 0; c.dur = dur;
+}
+function applyCam(which){
+  const n = document.getElementById(which);
+  if (n) n.setAttribute('viewBox', CAM[which].cur.map(v => v.toFixed(1)).join(' '));
+}
+function camStep(dt){
+  for (const k in CAM){
+    const c = CAM[k]; if (c.t >= 1) continue;
+    c.t = Math.min(1, c.t + dt/c.dur);
+    const u = c.t < .5 ? 4*c.t*c.t*c.t : 1 - Math.pow(-2*c.t+2, 3)/2;
+    for (let i=0;i<4;i++) c.cur[i] = c.from[i] + (c.to[i]-c.from[i])*u;
+    applyCam(k);
+  }
+}
+
+/* ---------- main loop ---------- */
+let last = 0;
+function frame(ts){
+  const dt = Math.min(0.05, (ts-last)/1000 || 0); last = ts;
+  if (scene === 'cloud' || running){
+    if (running){
+      spawnAcc += rate*dt;
+      while (spawnAcc >= 1 && PH.length < 260){ spawnAcc -= 1; newPhoton(); }
+    }
+    if (burst > 0){
+      let n = Math.min(burst, 6);
+      while (n-- > 0 && PH.length < 320){ newPhoton(); burst--; }
+    }
+    stepPhotons(dt);
+  }
+  if (scene === 'atom') stepAtom(dt);
+  camStep(dt);
+  requestAnimationFrame(frame);
+}
+
+/* =====================================================================
+   Scenes, elements, walkthrough
+   ===================================================================== */
+let scene = 'cloud', atomBuilt = false, srcMode = 'sun';
+const LAB_GASES = ['H', 'He'];
+function applySourceLimits(){
+  const lab = srcMode === 'lab';
+  $('#labNote').hidden = !lab;
+  Array.from($('#segEl').children).forEach(b => {
+    const off = lab && LAB_GASES.indexOf(b.dataset.k) < 0;
+    b.disabled = off;
+    b.title = off ? 'No school lab keeps a cool cloud of this vapour \u2014 its lines come from starlight'
+                  : '';
+  });
+  if (lab && LAB_GASES.indexOf(key) < 0) setElement('H');
+}
+function setSource(m){
+  srcMode = m;
+  [$('#segSrc'), $('#barSrc')].forEach(host =>
+    Array.from(host.children).forEach(b => b.classList.toggle('sel', b.dataset.m === m)));
+  applySourceLimits();
+  buildCloud();
+  if (atomBuilt) buildAtom();
+}
+function setScene(s){
+  scene = s;
+  $('#view').dataset.scene = s;
+  Array.from($('#segScene').children).forEach(b => b.classList.toggle('sel', b.dataset.s === s));
+  $('#cloudCtl').hidden = s !== 'cloud';
+  $('#atomCtl').hidden  = s !== 'atom';
+  if (s === 'atom' && !atomBuilt){ buildAtom(); atomBuilt = true; }
+}
+function setElement(k){
+  key = k; elm = ELEMENTS[k];
+  Array.from($('#segEl').children).forEach(b => b.classList.toggle('sel', b.dataset.k === k));
+  $('#elFact').textContent = elm.fact;
+  const lbl = $('#gasLbl'); if (lbl) lbl.textContent = gasLabel();
+  while (PH.length) killPhoton(PH[0]);
+  tally.match = tally.abs = tally.fwd = 0; updateTally();
+  rebuildLines(); lineSel = 0;
+  updateBeamNote();
+  if (atomBuilt) buildAtom(); else buildLineButtons();
+}
+
+(function buildElementButtons(){
+  const g = $('#segEl');
+  ORDER.forEach(k => {
+    const b = document.createElement('button');
+    b.textContent = ELEMENTS[k].sym + ' \u00b7 ' + ELEMENTS[k].name;
+    b.dataset.k = k;
+    b.addEventListener('click', () => setElement(k));
+    g.appendChild(b);
+  });
+})();
+
+/* ---------- walkthrough ---------- */
+const STEPS = [
+  {s:'cloud', cam:[250,300,1.55], lit:['cSource','sp0'], at:[38,8],
+   t:'The source is hot, dense gas, giving out <b>every</b> wavelength at random moments and from every part of it. Spread that light across the beam and you get an unbroken band of colour.'},
+  {s:'cloud', cam:[500,300,1.85], lit:['cGas'], at:[6,8],
+   t:'The jumble of photons then crosses cooler, thinner gas. The electron in each atom can only have <b>certain energies</b>, so only certain gaps exist between them.'},
+  {s:'atom',  cam:[420,320,1.45], lit:['aWell'], at:[6,8],
+   t:'Go inside one atom. A photon is taken whole or not at all, so it is absorbed only when its energy is exactly a gap: <b>hf = E<sub>2</sub> \u2212 E<sub>1</sub></b>. More than enough is no use \u2014 it has to match.'},
+  {s:'atom',  cam:[420,410,1.20], lit:['aRain','aStrip'], at:[34,8],
+   t:'One energy means one frequency, and so <b>one wavelength</b>. That single wavelength is taken out of the light still travelling forwards.'},
+  {s:'atom',  cam:[832,246,1.95], lit:['aRose'], at:[6,62],
+   t:'The electron does not stay up. It falls back and gives the photon straight back out \u2014 but it has no memory of where the first one came from, so it leaves in <b>any direction</b>. Every dot is one photon.'},
+  {s:'atom',  cam:[640,420,1.22], lit:['aRose','aStrip'], at:[8,8],
+   t:'Your eye collects only the narrow cone pointing at it. Nearly every re-emitted photon misses it, so that wavelength still arrives \u2014 but <b>much weaker</b>.'},
+  {s:'cloud', cam:[780,300,1.50], lit:['sp2','cEyes'], at:[6,8],
+   t:'Spread the light that got through across the strip in front of the eye. Weaker, not absent: against the full band either side of it, that wavelength reads as a <b>dark line</b>.'},
+  {s:'cloud', cam:[500,392,1.40], lit:['sp1'], at:[52,8],
+   t:'The energy was never destroyed. Look down on the same gas <b>from the side</b> and those wavelengths appear as bright lines \u2014 an emission spectrum.'},
+  {s:'cloud', cam:null, lit:[], at:[30,12],
+   t:'Every element has its own set of gaps, so its own pattern of lines. Read the pattern in starlight and you know what the star is made of.'}
+];
+let step = -1, bubble = null;
+function walkTo(i){
+  step = i;
+  const S = STEPS[i];
+  setScene(S.s);
+  if (S.s === 'cloud' || S.s === 'atom')
+    camTo(S.s, S.cam ? focusOn(S.cam[0], S.cam[1], S.cam[2]) : FULL, 1.1);
+  $('#view').classList.add('dim');
+  document.querySelectorAll('.spot').forEach(n => n.classList.remove('lit'));
+  S.lit.forEach(id => { const n = document.getElementById(id); if (n) n.classList.add('lit'); });
+  if (S.s === 'cloud' && !running) toggleRun(true);
+  if (S.s === 'atom' && i >= 2) startAtomRun(i >= 4 ? 3 : 1);
+  if (!bubble){
+    bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    $('#bubbleHost').appendChild(bubble);
+  }
+  bubble.innerHTML = '<span class="step">Step ' + (i+1) + ' of ' + STEPS.length + '</span>' + S.t
+    + '<div class="row">'
+    + (i > 0 ? '<button id="wBack">Back</button>' : '')
+    + (i < STEPS.length-1 ? '<button id="wNext" class="primary">Next</button>'
+                          : '<button id="wNext" class="primary">Finish</button>')
+    + '<button id="wStop">Leave the walkthrough</button></div>';
+  const nx = $('#wNext'), bk = $('#wBack'), sp = $('#wStop');
+  nx.onclick = () => { if (i < STEPS.length-1) walkTo(i+1); else endWalk(); };
+  if (bk) bk.onclick = () => walkTo(i-1);
+  sp.onclick = endWalk;
+  layoutBubble();
+  nx.focus();
+}
+function layoutBubble(){
+  if (!bubble || step < 0) return;
+  const at = STEPS[step].at;
+  bubble.style.left = at[0] + '%';
+  bubble.style.top  = at[1] + '%';
+}
+function endWalk(){
+  step = -1;
+  camTo('cloud', FULL, 0.7); camTo('atom', FULL, 0.7);
+  $('#view').classList.remove('dim');
+  document.querySelectorAll('.spot').forEach(n => n.classList.remove('lit'));
+  if (bubble){ bubble.remove(); bubble = null; }
+  $('#btnWalk').textContent = 'Walk me through the dark lines';
+}
+
+/* ---------- check yourself ---------- */
+let qGap = 0;
+const colourName = w => w < 450 ? 'violet' : w < 495 ? 'blue' : w < 570 ? 'green'
+                      : w < 590 ? 'yellow' : w < 620 ? 'orange' : 'red';
+function newQ(){
+  const pool = [];
+  ORDER.forEach(k => ELEMENTS[k].lines.forEach(L => pool.push(L.dE)));
+  qGap = pool[Math.floor(Math.random()*pool.length)];
+  $('#qPrompt').innerHTML = 'A gap between two levels is <b>' + qGap.toFixed(2)
+    + ' eV</b>. At which wavelength will its dark line appear?';
+  $('#qIn').value = ''; $('#qIn').classList.remove('invalid');
+  $('#qOut').className = 'verdict'; $('#qOut').textContent = '';
+}
+function checkQ(){
+  const raw = $('#qIn').value.trim().replace(/\s+/g,'').replace(/[\u00d7x]10\^?/i,'e').replace(/\^/,'e');
+  const v = Number(raw);
+  const out = $('#qOut');
+  if (!raw || !isFinite(v) || v <= 0){
+    $('#qIn').classList.add('invalid');
+    out.className = 'verdict bad'; out.textContent = 'Type a number in nanometres.'; return;
+  }
+  $('#qIn').classList.remove('invalid');
+  const c = HC/qGap, r = v/c;
+  const f = qGap/4.135667e-15;
+  const say = (cls, html) => { out.className = 'verdict ' + cls; out.innerHTML = html; };
+  if (Math.abs(r-1) <= 0.01)
+    say('good', 'Correct \u2014 <span class="num">' + c.toFixed(1) + ' nm</span>, in the '
+        + colourName(c) + '. That is the wavelength missing from the beam.');
+  else if (Math.abs(r-1e-9) <= 1e-10)
+    say('bad', 'Right number, wrong unit. <span class="num">' + v.toExponential(2)
+        + '</span> is in metres; the box asks for nanometres, so \u00d7 10<sup>9</sup>.');
+  else if (r > 1e8)
+    say('bad', 'That is <span class="num">10<sup>9</sup></span> times too big. You have gone from metres to nanometres the wrong way.');
+  else if (Math.abs(v/f-1) <= 0.03)
+    say('bad', 'That is the <b>frequency</b> in Hz, not the wavelength. Now use \u03bb = c / f.');
+  else if (r < 1e-10)
+    say('bad', 'You have used <span class="num">h = 6.63 \u00d7 10<sup>\u221234</sup> J s</span> with an energy still in eV. '
+      + 'Convert the energy to joules first (\u00d7 1.60 \u00d7 10<sup>\u221219</sup>), or use hc = 1240 eV nm.');
+  else if (r > 1.01 && r < 2.2)
+    say('bad', 'Too long by a factor of about <span class="num">' + r.toFixed(2)
+      + '</span>. Check you divided <i>hc</i> <b>by</b> the energy, and that you used the whole gap.');
+  else
+    say('bad', 'Not this one. \u03bb = hc / E, and with hc = 1240 eV nm an energy in eV gives the wavelength straight in nm.');
+}
+
+/* =====================================================================
+   Exam answers
+   ===================================================================== */
+const EXAM = [
+  { code:'9702_w09_qp_42  Q3(a)', marks:3,
+    q:'Explain how a line emission spectrum leads to an understanding of the existence of discrete '
+     + 'electron energy levels in atoms.',
+    ms:['each line corresponds to a (specific) photon energy',
+        'photon emitted when electron changes its energy level',
+        'discrete energy changes so discrete levels'],
+    model:'Each line in an emission spectrum corresponds to photons of a particular frequency and therefore '
+     + 'a specific energy, E = hf. These photons are emitted when electrons de-excite from a higher energy '
+     + 'level to a lower energy level. The photon energy equals the energy difference between the two levels, '
+     + 'showing that electron energy levels are discrete.',
+    pit:'Describing the lines as \u201cdifferent colours\u201d without tying colour to a photon energy scores '
+     + 'nothing. The third mark is the argument itself: discrete energy changes can only come from discrete levels.' },
+  { code:'9702_w14_qp_41  Q8(a)', marks:3,
+    q:'White light is incident on a cloud of cool hydrogen gas. The spectrum of the light emerging from the '
+     + 'gas cloud is found to contain a number of dark lines. Explain why these dark lines occur.',
+    ms:['photon \u2018absorbed\u2019 by electron',
+        'photon has energy equal to difference in energy of two energy levels',
+        'electron de-excites emitting photon (of same energy) in any direction'],
+    model:'A photon is absorbed by an electron, exciting it to a higher energy level. The photon energy equals '
+     + 'the difference between the two electron energy levels. When the electron de-excites, the photon is '
+     + 'emitted in any direction, reducing the intensity of the transmitted beam at that wavelength, as evident '
+     + 'by a dark line on the visible spectrum.',
+    pit:'Stopping at \u201cthe light is absorbed\u201d loses the last mark every time. The examiner wants the '
+     + 're-emission, and the words <b>in any direction</b>.' },
+  { code:'9702 Paper 4  Q7(a)', marks:4,
+    q:'A beam of white light passes through a cloud of cool gas. The spectrum of the transmitted light is '
+     + 'viewed and contains a number of dark lines. Explain why these dark lines occur.',
+    ms:['photon absorbed (by electron) and electron excited',
+        'photon energy equal to difference in (energy of two) energy levels',
+        'photon energy relates to a single wavelength / single frequency',
+        'electron de-excites and emits photon in any direction'],
+    model:'A photon is absorbed by an electron, exciting it to a higher energy level. The photon energy equals '
+     + 'the difference between the two electron energy levels. Since the energy levels are discrete, only '
+     + 'particular photon frequencies or wavelengths are absorbed. When the electron de-excites, the photon is '
+     + 'emitted in any direction, reducing the intensity of the transmitted beam at that wavelength, as evident '
+     + 'by a dark line on the visible spectrum.',
+    pit:'The extra mark here is the one students miss: an energy fixes <b>a single frequency and so a single '
+     + 'wavelength</b>. Without that sentence there is nothing to explain why the gap in the spectrum is a thin '
+     + 'line rather than a broad band.' }
+];
+(function buildExam(){
+  const host = $('#examBody');
+  EXAM.forEach(E => {
+    const d = document.createElement('div');
+    d.className = 'qcard';
+    d.innerHTML = '<div class="kick">' + E.code + ' \u00b7 ' + E.marks + ' marks</div>'
+      + '<p class="qtext">' + E.q + '</p>'
+      + '<h4>What the mark scheme gives credit for</h4>'
+      + '<ul class="ms">' + E.ms.map(p => '<li><span class="b1">B1</span><span>' + p + '</span></li>').join('') + '</ul>'
+      + '<h4>Model answer</h4><div class="model">' + E.model + '</div>'
+      + '<p class="pitfall"><b>Where marks go missing.</b> ' + E.pit + '</p>';
+    host.appendChild(d);
+  });
+})();
+
+/* =====================================================================
+   Wiring
+   ===================================================================== */
+function toggleRun(on){
+  running = on === undefined ? !running : on;
+  $('#btnRun').textContent = running ? 'Pause the light' : 'Start the light';
+  $('#btnRun').classList.toggle('primary', !running);
+  const p = $('#btnPlay');
+  p.textContent = running ? '\u275a\u275a' : '\u25b6';
+  p.setAttribute('aria-label', running ? 'Pause the light' : 'Start the light');
+  p.setAttribute('title', running ? 'Pause the light' : 'Start the light');
+}
+$('#btnRun').addEventListener('click', () => toggleRun());
+$('#btnPlay').addEventListener('click', () => toggleRun());
+$('#btnBurst').addEventListener('click', () => { burst += 400; });
+$('#segShow').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (b) setShow(b.dataset.v);
+});
+$('#btnClear').addEventListener('click', clearAll);
+$('#rate').addEventListener('input', e => {
+  rate = Number(e.target.value);
+  $('#rateOut').textContent = rate;
+});
+$('#segSrc').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (step >= 0) endWalk();
+  setSource(b.dataset.m);
+});
+$('#segScene').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (step >= 0) endWalk();
+  setScene(b.dataset.s);
+});
+$('#btnWalk').addEventListener('click', () => { if (step >= 0) endWalk(); else walkTo(0); });
+$('#btnFire').addEventListener('click', () => startAtomRun(1));
+$('#btnFire20').addEventListener('click', () => startAtomRun(20));
+$('#qCheck').addEventListener('click', checkQ);
+$('#qNew').addEventListener('click', newQ);
+$('#qIn').addEventListener('keydown', e => { if (e.key === 'Enter') checkQ(); });
+
+const scrim = $('#scrim');
+let wasRunning = false;
+$('#btnExam').addEventListener('click', () => {
+  wasRunning = running; toggleRun(false);
+  scrim.hidden = false; $('#examClose').focus();
+});
+function closeExam(){ scrim.hidden = true; if (wasRunning) toggleRun(true); $('#btnExam').focus(); }
+$('#examClose').addEventListener('click', closeExam);
+scrim.addEventListener('click', e => { if (e.target === scrim) closeExam(); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!scrim.hidden) closeExam();
+  else if (step >= 0) endWalk();
+});
+
+/* ---------- go ---------- */
+buildCloud();
+setSource('sun');
+setFilter('none');
+setShow('all');
+setElement('H');
+setScene('cloud');
+$('#rateOut').textContent = rate;
+$('#tFoot').innerHTML = FOOT0;
+newQ();
+toggleRun(false);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
