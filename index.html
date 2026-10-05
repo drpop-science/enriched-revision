@@ -6,7 +6,7 @@
 <link href="favicon.ico" rel="icon" sizes="any"/>
 <link href="drpop_face_favicon_512.png" rel="icon" type="image/png"/>
 <link href="drpop_face_apple_touch_180.png" rel="apple-touch-icon"/>
-<title>Dr Pop's Enriched Revision</title>
+<title>Dr Pop Science</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;family=Lato:wght@400;700&amp;display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -157,15 +157,21 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
 
 /* Dynamic New badge handling */
 .badge-new.is-old{display:none!important;}
+
+/* Flashcards */
+#level-flashcards .section-kicker{color:var(--flash)}
+.badge-flashcards{background:var(--flash-soft);color:#a64f3d;border-color:#f0c1b6}
+.flashcard-feature .card-stripe{background:linear-gradient(90deg,#d86f59,#eaa51f 52%,#2f7cc0)!important}
+
 </style>
 </head>
 <body>
 
 <!-- ── Hero ── -->
 <div class="hero">
-  <div class="hero-name">Dr Pop · CAIE Science Resources</div>
-  <h1>Enriched <span>Revision</span></h1>
-  <p>Interactive study walkthroughs, past paper practice and mark scheme explanations — built for CAIE students. Free, works on any device, no login needed.</p>
+  <div class="hero-name">CAIE Science Resources</div>
+  <h1>Dr Pop <span>Science</span></h1>
+  <p>Interactive revision, retrieval practice, applets, past-paper walkthroughs and mark-scheme explanations — built for CAIE students. Free, works on any device, no login needed.</p>
   <div class="hero-chips">
     <span class="hero-chip">IGCSE · AS · A Level</span>
     <span class="hero-chip">EAL Friendly</span>
@@ -189,6 +195,8 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
       🧰 Applets
       <span class="btn-sub">Simulations</span>
     </button>
+  
+    <button class="level-btn" data-target="level-flashcards">Flashcards</button>
   </div>
 </div>
 
@@ -425,7 +433,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
     <p class="section-sub">Interactive tools for practising measurements, ray diagrams, quantum physics models and tricky visual ideas</p>
 
     <div class="resource-grid">
-      <!-- Featured quantum applets: deliberately kept at the top -->
+<!-- Featured quantum applets: deliberately kept at the top -->
       <a class="resource-card" data-added="2026-10-05" href="applets/energy-levels.html">
         <div class="card-stripe" style="background:linear-gradient(90deg,#12212e,var(--phy-dark) 52%,#f0b429);"></div>
         <div class="card-inner">
@@ -551,19 +559,70 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
 </div><!-- end container -->
 
 <div class="site-footer">
-  <strong>Dr Pop's Enriched Revision</strong> · CAIE IGCSE &amp; A Level Science<br/>
+  <strong>Dr Pop Science</strong> · CAIE IGCSE &amp; A Level Science<br/>
   <span style="margin-top:5px;display:block;">Past paper questions © Cambridge University Press &amp; Assessment · Used for educational purposes only.</span>
   <span style="margin-top:3px;display:block;font-size:11px;">drpop-science.github.io/enriched-revision</span>
 </div>
 
+
+<section class="level-section" id="level-flashcards">
+  <div class="section-head">
+    <div>
+      <div class="section-kicker">FLASHCARDS</div>
+      <h2>Active Retrieval Decks</h2>
+      <p>Reveal, check, explain and test yourself — designed to go beyond passive flip-card revision.</p>
+    </div>
+  </div>
+
+  <div class="resource-grid">
+    <a class="resource-card flashcard-feature" data-added="2026-10-05" href="Quantum%20Flashcards/quantum-flashcards.html">
+      <div class="card-stripe"></div>
+      <div class="card-inner">
+        <div class="card-top">
+          <span class="card-emoji">🧠</span>
+          <div class="badge-stack">
+            <span class="badge badge-ready">Ready ✓</span>
+            <span class="badge badge-flashcards">Flashcards</span>
+            <span class="badge badge-new" data-added="2026-10-05" data-new-badge="">New</span>
+          </div>
+        </div>
+        <div class="card-title">Quantum Flashcards</div>
+        <div class="card-desc">37 active-retrieval cards covering photons, photoelectric effect, matter waves, spectra and wave–particle duality, with guided derivations and a separate Test mode.</div>
+        <div class="card-tags">
+          <span class="tag">9702</span>
+          <span class="tag">Quantum physics</span>
+          <span class="tag">Active retrieval</span>
+          <span class="tag">Revise + Test</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span>37 cards · music · shareable results</span>
+        <span class="open-link" style="color:var(--flash);">Open →</span>
+      </div>
+    </a>
+  </div>
+</section>
+
 <script>
-function showLevel(id, btn) {
-  document.querySelectorAll('.level-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('level-' + id).classList.add('active');
-  btn.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function showLevel(level){
+  document.querySelectorAll('.level-section').forEach(section=>{
+    section.classList.toggle('active', section.id === 'level-' + level);
+  });
+  document.querySelectorAll('.level-btn').forEach(btn=>{
+    const target = btn.dataset.target || '';
+    const onclick = btn.getAttribute('onclick') || '';
+    const isActive = target === 'level-' + level || onclick.includes("'" + level + "'");
+    btn.classList.toggle('active', isActive);
+  });
 }
+
+document.querySelectorAll('.level-btn[data-target]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const level = btn.dataset.target.replace('level-','');
+    showLevel(level);
+  });
+});
+
 </script>
 
 <script>
