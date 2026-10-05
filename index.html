@@ -18,6 +18,8 @@
   --chem-dark:#4a1580; --chem-mid:#7d3c98; --chem-light:#f5eef8;
   /* Applets — gold / graphite */
   --app-dark:#4b3520; --app-mid:#d9822b; --app-light:#fff3df;
+  /* Flashcards — coral / warm cream */
+  --flash-dark:#914a3b; --flash-mid:#d86f59; --flash-light:#fff0eb;
   /* Neutrals */
   --amber:#f39c12; --amber-light:#fef9e7;
   --teal:#117a65;
@@ -58,8 +60,8 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
 
 /* ── Level switcher ── */
 .level-switcher{
-  display:flex;gap:10px;
-  margin:24px auto 0;width:fit-content;position:relative;
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+  margin:24px auto 0;width:min(100%,840px);position:relative;
 }
 .level-btn{
   padding:13px 28px;
@@ -70,6 +72,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
   color:rgba(255,255,255,0.65);cursor:pointer;
   transition:all 0.2s;letter-spacing:0.03em;
   display:flex;flex-direction:column;align-items:center;gap:3px;
+  flex:1 1 175px;max-width:200px;min-width:150px;
 }
 .level-btn .btn-sub{
   font-size:10px;font-weight:600;opacity:0.65;
@@ -152,16 +155,26 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
 @media(max-width:500px){
   .hero h1{font-size:26px;}
   .resource-grid{grid-template-columns:1fr;}
-  .level-btn{padding:8px 16px;font-size:12px;}
+  .level-switcher{gap:8px;}
+  .level-btn{padding:10px 8px;font-size:12px;min-width:0;max-width:none;flex:1 1 calc(50% - 8px);}
+  .level-btn .btn-sub{font-size:9px;}
 }
 
 /* Dynamic New badge handling */
 .badge-new.is-old{display:none!important;}
 
 /* Flashcards */
-#level-flashcards .section-kicker{color:var(--flash)}
-.badge-flashcards{background:var(--flash-soft);color:#a64f3d;border-color:#f0c1b6}
-.flashcard-feature .card-stripe{background:linear-gradient(90deg,#d86f59,#eaa51f 52%,#2f7cc0)!important}
+.badge-flashcards{
+  background:var(--flash-light);
+  color:var(--flash-dark);
+  border-color:#efc6bc;
+}
+.flashcard-feature .card-stripe{
+  background:linear-gradient(90deg,var(--flash-mid),var(--amber) 52%,var(--phy-mid))!important;
+}
+.flashcard-feature:hover{
+  border-color:#e7b8ad;
+}
 
 </style>
 </head>
@@ -195,8 +208,10 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
       🧰 Applets
       <span class="btn-sub">Simulations</span>
     </button>
-  
-    <button class="level-btn" data-target="level-flashcards">Flashcards</button>
+    <button class="level-btn" onclick="showLevel('flashcards',this)">
+      🗂️ Flashcards
+      <span class="btn-sub">Retrieval decks</span>
+    </button>
   </div>
 </div>
 
@@ -556,6 +571,47 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
     </div>
   </div><!-- end applets -->
 
+
+  <!-- ════════════════════════════════
+       FLASHCARDS SECTION
+  ════════════════════════════════ -->
+  <div class="level-section" id="level-flashcards">
+    <div class="section-head">
+      <span class="section-icon">🗂️</span>
+      <span class="section-title" style="color:var(--flash-dark);">Flashcards &amp; Retrieval</span>
+      <div class="section-line"></div>
+    </div>
+    <p class="section-sub">Active-retrieval decks with guided revision, quick checks and a separate test mode</p>
+
+    <div class="resource-grid">
+      <a class="resource-card flashcard-feature" data-added="2026-10-05" href="Quantum%20Flashcards/quantum-flashcards.html">
+        <div class="card-stripe"></div>
+        <div class="card-inner">
+          <div class="card-top">
+            <span class="card-emoji">🧠</span>
+            <div class="badge-stack">
+              <span class="badge badge-ready">Ready ✓</span>
+              <span class="badge badge-flashcards">Flashcards</span>
+              <span class="badge badge-new" data-added="2026-10-05" data-new-badge="">New</span>
+            </div>
+          </div>
+          <div class="card-title">Quantum Flashcards</div>
+          <div class="card-desc">37 active-retrieval cards covering photons, photoelectric effect, matter waves, spectra and wave–particle duality, with guided derivations and a separate Test mode.</div>
+          <div class="card-tags">
+            <span class="tag">9702</span>
+            <span class="tag">Quantum physics</span>
+            <span class="tag">Active retrieval</span>
+            <span class="tag">Revise + Test</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>37 cards · music · shareable results</span>
+          <span class="open-link" style="color:var(--flash-mid);">Open →</span>
+        </div>
+      </a>
+    </div>
+  </div><!-- end flashcards -->
+
 </div><!-- end container -->
 
 <div class="site-footer">
@@ -563,65 +619,24 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-he
   <span style="margin-top:5px;display:block;">Past paper questions © Cambridge University Press &amp; Assessment · Used for educational purposes only.</span>
   <span style="margin-top:3px;display:block;font-size:11px;">drpop-science.github.io/enriched-revision</span>
 </div>
-
-
-<section class="level-section" id="level-flashcards">
-  <div class="section-head">
-    <div>
-      <div class="section-kicker">FLASHCARDS</div>
-      <h2>Active Retrieval Decks</h2>
-      <p>Reveal, check, explain and test yourself — designed to go beyond passive flip-card revision.</p>
-    </div>
-  </div>
-
-  <div class="resource-grid">
-    <a class="resource-card flashcard-feature" data-added="2026-10-05" href="Quantum%20Flashcards/quantum-flashcards.html">
-      <div class="card-stripe"></div>
-      <div class="card-inner">
-        <div class="card-top">
-          <span class="card-emoji">🧠</span>
-          <div class="badge-stack">
-            <span class="badge badge-ready">Ready ✓</span>
-            <span class="badge badge-flashcards">Flashcards</span>
-            <span class="badge badge-new" data-added="2026-10-05" data-new-badge="">New</span>
-          </div>
-        </div>
-        <div class="card-title">Quantum Flashcards</div>
-        <div class="card-desc">37 active-retrieval cards covering photons, photoelectric effect, matter waves, spectra and wave–particle duality, with guided derivations and a separate Test mode.</div>
-        <div class="card-tags">
-          <span class="tag">9702</span>
-          <span class="tag">Quantum physics</span>
-          <span class="tag">Active retrieval</span>
-          <span class="tag">Revise + Test</span>
-        </div>
-      </div>
-      <div class="card-footer">
-        <span>37 cards · music · shareable results</span>
-        <span class="open-link" style="color:var(--flash);">Open →</span>
-      </div>
-    </a>
-  </div>
-</section>
-
 <script>
-function showLevel(level){
+function showLevel(level, clickedButton){
   document.querySelectorAll('.level-section').forEach(section=>{
     section.classList.toggle('active', section.id === 'level-' + level);
   });
-  document.querySelectorAll('.level-btn').forEach(btn=>{
-    const target = btn.dataset.target || '';
-    const onclick = btn.getAttribute('onclick') || '';
-    const isActive = target === 'level-' + level || onclick.includes("'" + level + "'");
-    btn.classList.toggle('active', isActive);
-  });
+  document.querySelectorAll('.level-btn').forEach(btn=>btn.classList.remove('active'));
+  if(clickedButton){
+    clickedButton.classList.add('active');
+  }else{
+    const matching = [...document.querySelectorAll('.level-btn')].find(btn=>{
+      const code = btn.getAttribute('onclick') || '';
+      return code.includes("'" + level + "'");
+    });
+    if(matching) matching.classList.add('active');
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-document.querySelectorAll('.level-btn[data-target]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    const level = btn.dataset.target.replace('level-','');
-    showLevel(level);
-  });
-});
 
 </script>
 
