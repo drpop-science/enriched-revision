@@ -414,6 +414,29 @@ body[data-study-mode="revise"] .testMusicOnly{display:none!important}
 }
 .hintBtn{background:var(--sun);border-color:#efd288;color:#725612}
 
+
+/* ---------- share result preview ---------- */
+.shareImageWrap{
+  margin:14px 0 16px;
+  display:flex;justify-content:center;
+}
+.shareImagePreview{
+  width:min(360px,78vw);
+  aspect-ratio:9/16;
+  object-fit:contain;
+  border-radius:18px;
+  border:1px solid var(--line);
+  box-shadow:0 14px 36px rgba(43,74,91,.14);
+  background:#f7fbfc;
+  cursor:pointer;
+}
+.shareImageHint{
+  text-align:center;
+  font-size:11.5px;
+  color:var(--muted);
+  margin-top:8px;
+}
+
 @media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -467,7 +490,7 @@ body[data-study-mode="revise"] .testMusicOnly{display:none!important}
       <div class="topActions">
         <button class="chipBtn hideMobile" id="homeBtn">⌂ Dr Pop Science</button>
         <button class="chipBtn hideMobile" id="fullscreenBtn">⛶ Full screen</button>
-        <button class="chipBtn" id="musicBtn">♫ Music off</button>
+        <button class="chipBtn" id="musicBtn">♫ Music on</button>
         <button class="chipBtn hideMobile" id="shareTop">Share results</button>
         <button class="chipBtn exitBtn" id="exitBtn">Exit</button>
       </div>
@@ -544,10 +567,17 @@ body[data-study-mode="revise"] .testMusicOnly{display:none!important}
 <div class="summaryOverlay" id="summaryOverlay" hidden>
   <div class="summary">
     <div class="summaryHead"><div><h2>Session summary</h2><div class="helper">Share a game-style result card, or email the detailed summary to Dr Pop.</div></div><button class="secondary" id="closeSummary">Close</button></div>
-    <div class="sharePreview"><b>Dr Pop Science · Quantum Retrieval Lab result</b><span>Your social share uses a colourful graphic with your score and session stats.</span></div>
+    <div class="sharePreview"><b>Dr Pop Science · Quantum Retrieval Lab result</b><span>Your result card is generated below in a 9:16 story format.</span></div>
+    <div class="shareImageWrap" id="shareImageWrap" hidden>
+      <div>
+        <img id="shareImagePreview" class="shareImagePreview" alt="Quantum Retrieval Lab result card">
+        <div class="shareImageHint">Tap/click the image to save it.</div>
+      </div>
+    </div>
     <pre id="summaryText"></pre>
     <div class="actionRow">
       <button class="primary socialShare" id="socialShareSummary">Share result</button>
+      <button class="secondary" id="saveShareImage">Save image</button>
       <button class="primary" id="emailSummary">Share with Dr Pop</button>
       <button class="secondary" id="copySummary">Copy summary</button>
     </div>
@@ -926,13 +956,18 @@ function init(){
   $("#startRevise").onclick=()=>start("revise");
   $("#startTest").onclick=()=>start("test");
   $("#exitBtn").onclick=exitStudy;
-  $("#homeBtn").onclick=()=>{window.location.href="../index.html"};
+  $("#homeBtn").onclick=()=>{window.location.href="../../index.html"};
   $("#fullscreenBtn").onclick=enterFullscreen;
   $("#musicBtn").onclick=toggleMusic;
   $("#shareBtn").onclick=openSummary;$("#shareTop").onclick=openSummary;
   $("#socialShareBtn").onclick=shareResultGraphic;
   $("#socialShareSummary").onclick=shareResultGraphic;
-  $("#closeSummary").onclick=()=>$("#summaryOverlay").hidden=true;
+  $("#saveShareImage").onclick=saveShareImage;
+  $("#shareImagePreview").onclick=saveShareImage;
+  $("#closeSummary").onclick=()=>{
+    $("#summaryOverlay").hidden=true;
+    if(sharePreviewURL){URL.revokeObjectURL(sharePreviewURL);sharePreviewURL=null;}
+  };
   $("#emailSummary").onclick=emailSummary;
   $("#copySummary").onclick=async()=>{try{await navigator.clipboard.writeText(summaryText());$("#copySummary").textContent="Copied ✓";setTimeout(()=>$("#copySummary").textContent="Copy",1000)}catch(e){}};
 }
@@ -942,6 +977,7 @@ function start(m){
   $("#landing").hidden=true;$("#studyShell").hidden=false;
   stopMusic();
   buildQueue();
+  startMusic();
 }
 function exitStudy(){stopMusic();$("#studyShell").hidden=true;$("#landing").hidden=false;if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}
 function enterFullscreen(){const el=$("#studyShell");if(!document.fullscreenElement&&el.requestFullscreen)el.requestFullscreen().catch(()=>{})}
@@ -1291,7 +1327,11 @@ function updateStats(){
   topics().forEach(t=>{const r=rows.filter(x=>x.topic===t);if(!r.length)return;const ee=r.reduce((a,x)=>a+x.score,0),mm=r.reduce((a,x)=>a+x.max,0),pp=Math.round(ee/mm*100);const d=document.createElement("div");d.className="topicRow";d.innerHTML=`<div class="topicTop"><span>${t}</span><b>${pp}%</b></div><div class="bar"><i style="width:${pp}%"></i></div>`;host.appendChild(d)});
   if(!host.children.length)host.innerHTML=`<div class="helper">Results appear as you work.</div>`;
 }
-function openSummary(){$("#summaryText").textContent=summaryText();$("#summaryOverlay").hidden=false}
+async function openSummary(){
+  $("#summaryText").textContent=summaryText();
+  $("#summaryOverlay").hidden=false;
+  await refreshSharePreview();
+}
 function summaryText(){
   const name=$("#studentName").value.trim()||"Student",rows=session.filter(x=>!x.self),e=rows.reduce((a,x)=>a+x.score,0),m=rows.reduce((a,x)=>a+x.max,0),pct=m?Math.round(e/m*100):0;
   const byTopic={};rows.forEach(r=>{byTopic[r.topic]??={e:0,m:0,n:0};byTopic[r.topic].e+=r.score;byTopic[r.topic].m+=r.max;byTopic[r.topic].n++});
@@ -1355,7 +1395,7 @@ async function makeShareGraphic(){
   roundRect(c,x,1605,right-x,150,28);c.fillStyle="#f5fafb";c.fill();
   c.fillStyle="#168f88";c.font="900 25px Arial";c.fillText("⚛  QUANTUM TRAINING COMPLETE",x+34,1660);
   c.fillStyle="#6b7f8e";c.font="650 20px Arial";c.fillText("Cambridge International A Level Physics 9702",x+34,1703);
-  c.fillStyle="#2f7cc0";c.font="800 21px Arial";c.fillText("Dr Pop Science · Quantum Flashcards",x+34,1739);
+  c.fillStyle="#2f7cc0";c.font="800 21px Arial";c.fillText("Dr Pop Science",x+34,1739);
 
   c.fillStyle="#8597a1";c.font="600 18px Arial";c.fillText("Share your score · keep improving · beat your next round",x,1810);
 
@@ -1363,6 +1403,27 @@ async function makeShareGraphic(){
 }
 function roundRect(c,x,y,w,h,r){
   c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();
+}
+
+let sharePreviewURL=null;
+async function refreshSharePreview(){
+  const blob=await makeShareGraphic();if(!blob)return;
+  if(sharePreviewURL)URL.revokeObjectURL(sharePreviewURL);
+  sharePreviewURL=URL.createObjectURL(blob);
+  $("#shareImagePreview").src=sharePreviewURL;
+  $("#shareImageWrap").hidden=false;
+}
+async function saveShareImage(){
+  const blob=await makeShareGraphic();if(!blob)return;
+  const name=($("#studentName").value.trim()||"student").replace(/[^a-z0-9_-]+/gi,"-").toLowerCase();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`quantum-retrieval-${name}.png`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 async function shareResultGraphic(){
   const blob=await makeShareGraphic();if(!blob)return;
@@ -1375,7 +1436,8 @@ async function shareResultGraphic(){
     }
     if(navigator.share){await navigator.share({title:"Quantum Retrieval Lab result",text});}
   }catch(e){if(e&&e.name==="AbortError")return}
-  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  await refreshSharePreview();
+  $("#summaryOverlay").hidden=false;
 }
 
 function emailSummary(){const n=$("#studentName").value.trim()||"Student";location.href=`mailto:${TEACHER}?subject=${encodeURIComponent("Quantum Retrieval Lab results — "+n)}&body=${encodeURIComponent(summaryText())}`}
