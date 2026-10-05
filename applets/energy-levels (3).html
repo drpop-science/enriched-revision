@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Electron energy levels and photons — Dr Pop's Enriched Revision</title>
+<style>
+  :root{
+    --ground:#12212e;
+    --panel:#182a3a;
+    --panel-2:#1e3448;
+    --rule:#2c4459;
+    --ink:#e7eef4;
+    --ink-dim:#93a8ba;
+    --amber:#f0b429;
+    --good:#4ec9a4;
+    --bad:#e8735b;
+    --cloud:#7cc4ff;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1260px;margin:0 auto;padding:20px 20px 40px}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+  h1{font-size:24px;font-weight:600;letter-spacing:-.01em;margin:0}
+  .brand{font-size:13px;color:var(--ink-dim)}
+  .brand b{font-weight:600;color:#b9cbd9}
+
+  .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+  .main{display:contents}
+  .stage{order:1} .panel{order:2} .data{order:3}
+  @media (min-width:880px){
+    .layout{grid-template-columns:minmax(0,1fr) 322px}
+    .main{display:flex;flex-direction:column;gap:14px;min-width:0}
+  }
+  @media (min-width:1120px){ .layout{grid-template-columns:minmax(0,1fr) 350px} }
+
+  .stage{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:8px;overflow:hidden}
+  .view{position:relative;width:100%;aspect-ratio:1000/650;border-radius:10px;overflow:hidden;
+        background:radial-gradient(ellipse at 52% 48%,#1f374c 0%,#182a3a 62%)}
+  .view > canvas,.view > svg{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+  #cvFull{cursor:grab;touch-action:pan-y}
+  #cvFull.grab{cursor:grabbing}
+  #well{opacity:0;pointer-events:none;transition:opacity .5s ease}
+  .view.well #well{opacity:1;pointer-events:auto}
+  .view.well #cvFull{pointer-events:none}
+
+  .ovl{position:absolute;pointer-events:none;transition:opacity .35s ease}
+  .view.well .ovl{opacity:0}
+  .ovl-top{left:18px;top:14px;right:18px}
+  .ovl-title{font-size:21px;font-weight:600;letter-spacing:-.01em}
+  .ovl-sub{font-size:14px;color:var(--ink-dim)}
+  .ovl-bot{left:18px;bottom:14px;max-width:58%;font-size:13.5px;line-height:1.45;color:var(--ink-dim)}
+  .ovl-bot .key{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 5px 0 0;vertical-align:0}
+
+  .inset{position:absolute;left:1.1%;top:34%;width:19.4%;aspect-ratio:1;border:1px solid var(--rule);border-radius:10px;
+         background:radial-gradient(circle at 50% 50%,#1b3246,#122232 72%);opacity:0;pointer-events:none;transition:opacity .45s ease}
+  .inset.on{opacity:1}
+  .inset.osc{border-color:var(--amber);box-shadow:0 0 0 1px rgba(240,180,41,.35)}
+  .inset canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .inset .cap{position:absolute;left:0;right:0;bottom:3px;text-align:center;font-family:var(--mono);font-weight:600;
+              font-size:clamp(9px,1.05vw,13px);color:#b9cbd9}
+  .inset .ttl{position:absolute;left:0;right:0;top:3px;text-align:center;font-size:clamp(8px,.9vw,11.5px);color:var(--ink-dim)}
+
+  .panel{display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--panel);border:1px solid var(--rule);border-radius:14px}
+  .ctl{display:flex;flex-direction:column;gap:10px}
+  button{font:inherit;font-size:15px;font-weight:500;color:var(--ink);background:var(--panel-2);border:1px solid var(--rule);
+         border-radius:9px;padding:11px 16px;cursor:pointer;transition:background .15s ease,border-color .15s ease}
+  button:hover:not(:disabled){background:#26405a;border-color:#3d5d78}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--amber);border-color:var(--amber);color:#241c05;font-weight:600}
+  button.primary:hover:not(:disabled){background:#ffc93f;border-color:#ffc93f}
+  .block{width:100%}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+  .lbl{font-size:13px;color:var(--ink-dim);margin-top:4px}
+  .seg{display:flex;border:1px solid var(--rule);border-radius:9px;overflow:hidden}
+  .seg button{flex:1;border:0;border-radius:0;background:transparent;padding:9px 2px;font-size:14px}
+  .seg button+button{border-left:1px solid var(--rule)}
+  .seg button.sel{background:var(--panel-2);color:var(--amber);font-weight:700}
+  .seg button:hover:not(.sel){background:#22384c}
+
+  .intro{margin:2px 0 0;font-size:14.5px;line-height:1.55;color:#c3d3df}
+
+  .qty{display:grid;grid-template-columns:minmax(0,1fr) 162px;align-items:center;gap:10px}
+  .qty label{font-size:13.5px;color:var(--ink-dim)}
+  .field{position:relative;display:flex;align-items:center}
+  input[type=text]{font-family:var(--mono);font-size:18px;font-weight:600;width:100%;padding:7px 46px 7px 10px;color:var(--ink);
+                   background:#0e1b26;border:1px solid var(--rule);border-radius:9px;text-align:right}
+  input[type=text].invalid{border-color:var(--bad)}
+  .field.wide input{padding-right:82px}
+  .unit{position:absolute;right:10px;font-family:var(--mono);font-size:13px;color:var(--ink-dim);pointer-events:none}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:12px;margin:8px 0 0;border-radius:6px;
+                    border:1px solid var(--rule);background:#0e1b26;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
+                    background:var(--ink);border:3px solid var(--amber);box-shadow:0 1px 4px rgba(0,0,0,.5)}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--ink);border:3px solid var(--amber)}
+  input[type=range]::-moz-range-track{background:transparent}
+  .ends{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--ink-dim);margin-top:-4px}
+
+  .verdict{min-height:92px;font-size:15px;line-height:1.45;color:var(--ink-dim)}
+  .verdict.good{color:var(--good)}
+  .verdict.bad{color:var(--bad)}
+  .verdict.free{color:var(--amber)}
+  .verdict .num{font-family:var(--mono);font-weight:600}
+  .verdict .chal-done{display:block;margin-top:6px;color:var(--ink);font-size:14px}
+
+  .note{font-size:13px;color:var(--ink-dim);border-top:1px solid var(--rule);padding-top:10px;margin-top:2px}
+  .note summary{cursor:pointer;color:#b9cbd9;font-size:14px}
+  .note p{margin:8px 0 0;line-height:1.5}
+  .note b{color:#b9cbd9;font-weight:600}
+  .chal ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+  .chal li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.4;color:#c3d3df;border-radius:7px;padding:2px 4px}
+  .chal .tick{flex:none;width:17px;height:17px;margin-top:1px;border-radius:50%;border:1.5px solid #4a6379;position:relative}
+  .chal li.done{color:var(--ink-dim)}
+  .chal li.done .tick{background:var(--good);border-color:var(--good)}
+  .chal li.done .tick::after{content:"";position:absolute;left:5px;top:1.5px;width:4px;height:8px;border:solid #0e1b26;border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .chal li.pop{animation:pop 1.6s ease-out}
+  @keyframes pop{0%{background:rgba(78,201,164,.35)}100%{background:transparent}}
+
+  .data{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;padding:16px;background:var(--panel);border:1px solid var(--rule);border-radius:14px}
+  @media (min-width:1240px){ .data{grid-template-columns:minmax(0,5fr) minmax(0,7fr)} }
+  .data h2{font-size:15px;font-weight:600;margin:0 0 6px;color:#b9cbd9}
+  .data .dim{font-size:13.5px;color:var(--ink-dim);margin:0 0 8px;line-height:1.45}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th{text-align:left;font-weight:500;color:var(--ink-dim);font-size:12.5px;padding:4px 8px;border-bottom:1px solid var(--rule);white-space:nowrap}
+  td{padding:4px 8px;border-bottom:1px solid #22384b;font-family:var(--mono);white-space:nowrap}
+  td.nm{font-family:var(--sans)}
+  td .g{font-family:var(--sans);font-size:12px;color:var(--ink-dim);margin-left:6px}
+  tr.hot td{background:#22384c}
+  tbody tr[data-k]{cursor:pointer}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:7px}
+
+  /* svg */
+  .svg-note{font:14px var(--sans);fill:#b9cbd9}
+  .svg-dim{font:13px var(--sans);fill:var(--ink-dim)}
+  .zero{stroke:#9fb6c8;stroke-width:1.5;stroke-dasharray:6 5}
+  .wall{fill:none;stroke:url(#wallFade);stroke-width:2.6;stroke-linejoin:round}
+  .lvl{stroke:#cfdbe6;stroke-width:2}
+  .lvl.gnd{stroke-width:3.2}
+  .faint{stroke:#cfdbe6;stroke-width:1;stroke-dasharray:2 4;opacity:.45}
+  .lead2{stroke:#4a6379;stroke-width:1;fill:none}
+  .lv-name{font:500 14px var(--sans);fill:#dbe6ee}
+  .lv-val{font:600 14px var(--mono);fill:#9fb6c8}
+  .ion-shaft{stroke:var(--amber);stroke-width:2;stroke-dasharray:6 5;opacity:.7}
+  .ion-head{fill:var(--amber);opacity:.7}
+  .ion-txt{font:13px var(--sans);fill:#e9c46a}
+  .ion-val{font:600 13px var(--mono);fill:#e9c46a}
+  .axis{stroke:#4a6379;stroke-width:1.5}
+  .arrow{cursor:pointer;outline:none}
+  .arrow .hit{stroke:transparent;stroke-width:14}
+  .arrow .shaft{stroke-width:2.6}
+  .arrow.hot .shaft,.arrow:focus-visible .shaft{stroke-width:5}
+  .ph-lab{font:600 14px var(--mono);paint-order:stroke;stroke:#12212e;stroke-width:4px;stroke-linejoin:round}
+  .fx-lab{font:600 13px var(--mono);paint-order:stroke;stroke:#12212e;stroke-width:4px;stroke-linejoin:round}
+  .ke-lab{font:600 13px var(--mono);fill:var(--amber);paint-order:stroke;stroke:#12212e;stroke-width:4px;stroke-linejoin:round}
+  .ex-text{font:600 12.5px var(--sans);fill:var(--amber)}
+  .ering{fill:none;stroke:var(--amber);stroke-width:2;opacity:0}
+  .ering.on{animation:ring 1.1s ease-out infinite}
+  @keyframes ring{0%{opacity:.9;transform:scale(.7)}100%{opacity:0;transform:scale(1.7)}}
+  .ghost{fill:none;stroke:var(--cloud);stroke-width:1.5;stroke-dasharray:3 3}
+  .lamp-t{font:600 14px var(--sans);fill:#b9cbd9}
+  .lamp-e{font:600 17px var(--mono);fill:var(--ink)}
+  .lamp-r{font:13px var(--sans);fill:var(--ink-dim)}
+  .strip-zone{font:600 12px var(--sans);fill:#56708a}
+  .strip-end{font:11px var(--mono);fill:#6f889e}
+  .line-lab{font:600 11.5px var(--mono)}
+  .clear{font:13px var(--sans);fill:var(--amber);cursor:pointer;text-decoration:underline}
+  .tip-t{font:13px var(--sans);fill:var(--ink)}
+  .calc{padding:10px;background:#0e1b26;border:1px solid var(--rule);border-radius:11px}
+  .calc-out{font-family:var(--mono);font-size:23px;font-weight:600;text-align:right;padding:4px 8px;overflow:hidden;white-space:nowrap}
+  .calc-sub{font-family:var(--mono);font-size:12px;text-align:right;color:var(--ink-dim);min-height:16px;padding:0 8px 4px}
+  .calc-keys{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .calc-keys button{padding:10px 0;font-size:16px;font-family:var(--mono);border-radius:8px}
+  .calc-keys .op,.calc-keys .fn{color:#b9cbd9;background:#16283a}
+  .calc-keys .eq,.calc-keys .eq:hover:not(:disabled){background:var(--amber);border-color:var(--amber);color:#241c05;font-weight:700}
+  .calc-keys .eq:hover:not(:disabled){background:#ffc93f;border-color:#ffc93f}
+  .calc-keys .wide{grid-column:span 2}
+  .mag-bg{fill:#0e1b26;stroke:var(--amber);stroke-width:1.5}
+  .mag-t{font:600 12px var(--mono);fill:var(--amber)}
+  .mag-l{font:11.5px var(--mono);fill:#9fb6c8}
+  .mag-n{font:500 12px var(--sans);fill:#dbe6ee}
+  .hint{margin:2px 0 0;font-size:12.5px;line-height:1.4;color:#6f889e}
+  .hint b{color:#93a8ba;font-weight:600}
+  button.mini{padding:4px 10px;font-size:12.5px}
+  .work{margin-top:12px;padding:12px 14px;background:#0e1b26;border:1px solid var(--rule);border-left:3px solid var(--amber);border-radius:10px}
+  .work-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;color:#dbe6ee}
+  .work ol{margin:9px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:7px}
+  .work li{font-size:13.5px;line-height:1.5;color:#c3d3df}
+  .work .eq{font-family:var(--mono);font-size:13px;color:var(--ink);display:block;margin-top:3px}
+  .work .ans{color:var(--amber);font-weight:600}
+  .work-note{margin:10px 0 0;font-size:12.5px;line-height:1.45;color:var(--ink-dim)}
+  .exam h3{font-size:14.5px;font-weight:600;margin:12px 0 0;color:#dbe6ee}
+  .exam .kick{font-size:12px;font-family:var(--mono);color:var(--amber);margin-top:10px}
+  .exam ol{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px}
+  .exam li{font-size:13.5px;line-height:1.45;color:#c3d3df}
+  .osc-f{font:600 13px var(--mono);fill:var(--amber)}
+
+  @media (max-width:720px){
+    .wrap{padding:16px 12px 40px}
+    h1{font-size:20px}
+    .inset .ttl{display:none}
+    .ovl-title{font-size:16px}.ovl-sub{font-size:12px}.ovl-bot{font-size:11.5px;max-width:70%}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .ering.on{animation:none;opacity:.8}
+    #well,.inset,.ovl{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Electron energy levels and photons</h1>
+    <div class="brand"><b>Dr Pop's Enriched Revision</b> · Cambridge 9702</div>
+  </header>
+
+  <div class="layout">
+  <div class="main">
+  <div class="stage">
+    <div class="view" id="view">
+      <canvas id="cvFull" role="img" aria-label="3D model of the electron cloud of the atom"></canvas>
+      <div class="ovl ovl-top"><div class="ovl-title" id="ovlTitle"></div><div class="ovl-sub" id="ovlSub"></div></div>
+      <div class="ovl ovl-bot" id="ovlCap"></div>
+
+      <svg id="well" viewBox="0 0 1000 650" role="img" aria-label="Energy levels of the atom inside its potential well">
+        <defs>
+          <pattern id="hatch" width="11" height="11" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="11" stroke="#8fb4d4" stroke-width="1.2" opacity=".15"/>
+          </pattern>
+          <linearGradient id="wallFade" gradientUnits="userSpaceOnUse" x1="0" y1="566" x2="0" y2="470">
+            <stop offset="0" stop-color="#8fb4d4" stop-opacity="0"/><stop offset="1" stop-color="#8fb4d4" stop-opacity="1"/>
+          </linearGradient>
+          <linearGradient id="gHousing" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#8d97a4"/><stop offset="22%" stop-color="#d4dbe4"/>
+            <stop offset="60%" stop-color="#8b95a2"/><stop offset="100%" stop-color="#4b535f"/>
+          </linearGradient>
+          <radialGradient id="gElecGrad" cx=".38" cy=".35" r=".7">
+            <stop offset="0" stop-color="#f2f9ff"/><stop offset=".45" stop-color="#8fcdff"/><stop offset="1" stop-color="#3a7bd5"/>
+          </radialGradient>
+        </defs>
+        <g id="gCont"></g>
+        <g id="gAxis"></g>
+        <g id="gWell"></g>
+        <g id="gLevels"></g>
+        <g id="gLabels"></g>
+        <g id="gIon"></g>
+        <g id="gTrans"></g>
+        <g id="gSpec"></g>
+        <g id="gLines"></g>
+        <path id="aim" fill="none" stroke-width="1.5" stroke-dasharray="3 7" opacity=".4"/>
+        <g id="gLamp"></g>
+        <g id="gFx"></g>
+        <g id="gElec"></g>
+        <g id="gPhot"></g>
+        <g id="gMag"></g>
+        <g id="gTip"></g>
+      </svg>
+
+      <div class="inset" id="inset" aria-hidden="true">
+        <canvas id="cvInset"></canvas>
+        <div class="ttl">electron cloud</div>
+        <div class="cap" id="insetCap"></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="data" id="data" hidden>
+    <div>
+      <h2>Energy levels</h2>
+      <div id="tblLevels"></div>
+    </div>
+    <div>
+      <h2>Transitions</h2>
+      <p class="dim" id="transNote"></p>
+      <div id="tblTrans"></div>
+      <div class="work" id="work" hidden>
+        <div class="work-head"><span id="workTitle"></span><button id="workClose" class="mini">Close</button></div>
+        <ol id="workSteps"></ol>
+        <p class="work-note" id="workNote"></p>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ controls ============ -->
+  <aside class="panel">
+    <div class="lbl">Atom</div>
+    <div class="seg" id="segAtom">
+      <button data-a="H" class="sel">Hydrogen</button><button data-a="Na">Sodium</button>
+    </div>
+    <button id="btnView" class="primary block">Zoom in to the energy levels</button>
+
+    <p class="intro" id="intro"></p>
+    <div id="prevBox">
+      <div class="lbl">Show the cloud for</div>
+      <div class="seg" id="segPrev"></div>
+    </div>
+
+    <div class="ctl" id="ctl" hidden>
+      <div class="lbl">Light source</div>
+      <div class="qty"><label for="inE">Photon energy</label>
+        <div class="field"><input type="text" id="inE" inputmode="decimal" autocomplete="off"><span class="unit">eV</span></div></div>
+      <div class="qty"><label for="inL">Wavelength</label>
+        <div class="field"><input type="text" id="inL" inputmode="decimal" autocomplete="off"><span class="unit">nm</span></div></div>
+      <div class="qty"><label for="inF">Frequency</label>
+        <div class="field wide"><input type="text" id="inF" inputmode="decimal" autocomplete="off"><span class="unit">×10<sup>14</sup> Hz</span></div></div>
+      <input type="range" id="slider" min="0.5" max="16" step="0.01" value="2" aria-label="Photon energy in electronvolts">
+      <div class="ends"><span id="sMin"></span><span id="sMax"></span></div>
+      <p class="hint" id="tolHint"></p>
+
+      <button id="btnFire" class="primary block">Fire a photon</button>
+      <div class="verdict" id="status" aria-live="polite"></div>
+      <button id="btnReset" class="block" hidden>Reset the atom</button>
+      <button id="btnTrans" class="block" aria-pressed="false">Show all transitions</button>
+
+      <div class="lbl">Watching the jump</div>
+      <label class="opts"><input type="checkbox" id="optZoom" checked> Close-up when levels are crowded</label>
+      <div class="seg" id="segSpeed">
+        <button data-r="1" class="sel">Normal speed</button><button data-r="3">Slow motion</button>
+      </div>
+
+      <button id="btnCalc" class="block" aria-expanded="false">Calculator</button>
+      <div class="calc" id="calc" hidden>
+        <div class="calc-out" id="calcOut">0</div>
+        <div class="calc-sub" id="calcSub"></div>
+        <div class="calc-keys" id="calcKeys">
+          <button data-k="C" class="fn">C</button><button data-k="back" class="fn">⌫</button><button data-k="neg" class="fn">±</button><button data-k="/" class="op">÷</button>
+          <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="*" class="op">×</button>
+          <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="-" class="op">−</button>
+          <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="+" class="op">+</button>
+          <button data-k="0" class="wide">0</button><button data-k=".">.</button><button data-k="=" class="eq">=</button>
+        </div>
+      </div>
+
+      <details class="note chal" open>
+        <summary>Challenges <span id="chalCount"></span></summary>
+        <ul id="chalList"></ul>
+      </details>
+    </div>
+
+    <details class="note">
+      <summary>How it works</summary>
+      <p><b>Why the energies are negative.</b> 0 eV is an electron that has only just escaped. A bound electron has less energy than that, so its energy is negative.</p>
+      <p><b>Absorbing.</b> The photon energy must equal the gap between the electron's level and a higher one: <i>hf</i> = <i>E</i><sub>2</sub> − <i>E</i><sub>1</sub>. A photon is taken whole or not at all, so any other energy passes through. Above the ionisation energy the electron is freed and the extra becomes kinetic energy.</p>
+      <p><b>Emitting.</b> Each jump down gives off one photon of exactly the gap. Here every allowed jump down is equally likely.</p>
+      <p id="naRule" hidden><b>Sodium.</b> The outer electron only jumps between s and p, or between p and d, so some gaps give no line.</p>
+      <p><b>Extras.</b> The cloud beside the diagram shows where the electron is likely to be; it only moves while a jump is happening. Occasionally hydrogen lands in a metastable state and leaves it by giving off two photons at once.</p>
+    </details>
+  </aside>
+
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
+const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+const HC = 1239.84;            // eV nm
+const EV_S = 4.135667e-15;     // Planck constant in eV s
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const easeIO = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  if (attrs) for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+/* =====================================================================
+   Atoms. Level energies are the model values (rounded), so every sum of
+   photon energies matches the absorbed gap exactly.
+   ===================================================================== */
+const ATOMS = {
+  H: {
+    key:'H', name:'Hydrogen', ionName:'H\u207A', dp:2, emax:16, zeff:1, core:false,
+    inf:'n = \u221E', freeKE:2,
+    levels:[-13.60,-3.40,-1.51,-0.85,-0.54,-0.38].map((E,i) => ({E, name:'n = '+(i+1), n:i+1, l:Math.min(i,2)})),
+    faint:[-0.28,-0.21,-0.17,-0.14,-0.11],
+    allowed:() => true,
+    above:'Real hydrogen has more levels (n = 7, 8, 9 \u2026) crowded just below 0 eV. This model leaves them out, so here the photon passes straight through.',
+    intro:'A hydrogen atom has one electron. It does not orbit like a planet. The cloud shows where the electron is likely to be found. Zoom in to see the energy levels the electron is allowed to have.',
+    ovlSub:'One electron, in the ground state (n = 1)'
+  },
+  Na: {
+    key:'Na', name:'Sodium', ionName:'Na\u207A', dp:3, emax:7, zeff:2.5, core:true,
+    inf:'\u221E', freeKE:1,
+    levels:[['3s',-5.139,3,0],['3p',-3.035,3,1],['4s',-1.948,4,0],['3d',-1.522,3,2],['4p',-1.386,4,1],['5s',-1.023,5,0],['4d',-0.856,4,2]]
+             .map(a => ({name:a[0], E:a[1], n:a[2], l:a[3]})),
+    faint:[-0.795,-0.630,-0.547,-0.515],
+    allowed:(a, b) => Math.abs(a.l - b.l) === 1,
+    above:'Real sodium has more levels crowded between \u22120.856 eV and 0 eV. This model leaves them out, so here the photon passes straight through.',
+    intro:'A sodium atom has 11 electrons. Only the outer electron takes part in the light you will see. Zoom in to see the energy levels it is allowed to have.',
+    ovlSub:'11 electrons. The outer electron is in the ground state (3s)'
+  }
+};
+const LNAME = 'spdf';
+
+const CHALLENGES = {
+  H:[
+    {id:'red',   text:'Make the atom give off red light.'},
+    {id:'three', text:'Get three photons out of one absorbed photon.'},
+    {id:'free',  text:'Free the electron so it leaves with exactly 2.00 eV of kinetic energy.'},
+    {id:'trap',  text:'Find a photon energy that matches a gap on the diagram but is still not absorbed.'}
+  ],
+  Na:[
+    {id:'yellow',text:'Make the yellow light of a sodium street lamp.'},
+    {id:'three', text:'Get three photons out of one absorbed photon.'},
+    {id:'free',  text:'Free the electron so it leaves with exactly 1.000 eV of kinetic energy.'},
+    {id:'rule',  text:'Find a level the electron cannot reach from 3s, even with a photon of exactly the right energy.'}
+  ]
+};
+const done = {H:new Set(), Na:new Set()};
+
+let atom = ATOMS.H;
+
+/* ---------- formatting ---------- */
+const fmtE = x => x.toFixed(atom.dp);
+const fmtSigned = x => (x < 0 ? '\u2212' : '') + Math.abs(x).toFixed(atom.dp);
+const fmtL = l => l >= 9999.5 ? String(Math.round(l)) : l.toPrecision(4);
+const fmtF = f => f.toPrecision(3);
+const rnd = x => { const m = Math.pow(10, atom.dp); return Math.round(x * m) / m; };
+const num = s => '<span class="num">' + s + '</span>';
+
+/* ---------- light colours ---------- */
+function specRGB(nm){
+  let r = 0, g = 0, b = 0;
+  if (nm < 440){ r = (440 - nm) / 60; b = 1; }
+  else if (nm < 490){ g = (nm - 440) / 50; b = 1; }
+  else if (nm < 510){ g = 1; b = (510 - nm) / 20; }
+  else if (nm < 580){ r = (nm - 510) / 70; g = 1; }
+  else if (nm < 645){ r = 1; g = (645 - nm) / 65; }
+  else { r = 1; }
+  let f = 1;
+  if (nm < 420) f = 0.3 + 0.7 * (nm - 380) / 40;
+  else if (nm > 700) f = 0.3 + 0.7 * (750 - nm) / 50;
+  f = clamp(f, 0.3, 1);
+  return [r, g, b].map(c => Math.round(255 * Math.pow(clamp(c, 0, 1) * f, 0.8)));
+}
+function mixWhite(rgb, k){ return 'rgb(' + rgb.map(x => Math.round(x + (255 - x) * k)).join(',') + ')'; }
+function photonColour(nm){
+  if (nm < 380) return '#b9a3ff';
+  if (nm > 750) return '#cf735c';
+  return mixWhite(specRGB(nm), 0.14);
+}
+function labelColour(nm){
+  if (nm < 380) return '#d6c9ff';
+  if (nm > 750) return '#eaa28e';
+  return mixWhite(specRGB(nm), 0.45);
+}
+function lightName(l){
+  if (l < 380) return 'ultraviolet';
+  if (l > 750) return 'infrared';
+  if (l < 440) return 'violet';
+  if (l < 485) return 'blue';
+  if (l < 500) return 'blue-green';
+  if (l < 565) return 'green';
+  if (l < 575) return 'yellow-green';
+  if (l < 592) return 'yellow';
+  if (l < 625) return 'orange';
+  return 'red';
+}
+
+/* =====================================================================
+   Hydrogen-like orbitals, sampled from |psi|^2 for the 3D cloud
+   ===================================================================== */
+function lag(k, a, x){                       // generalised Laguerre L_k^a(x)
+  if (k === 0) return 1;
+  let L0 = 1, L1 = 1 + a - x;
+  for (let i = 1; i < k; i++){ const L2 = ((2*i + 1 + a - x) * L1 - (i + a) * L0) / (i + 1); L0 = L1; L1 = L2; }
+  return L1;
+}
+function leg(l, x){                          // Legendre P_l(x)
+  if (l === 0) return 1;
+  if (l === 1) return x;
+  let p0 = 1, p1 = x;
+  for (let i = 1; i < l; i++){ const p2 = ((2*i + 1) * x * p1 - i * p0) / (i + 1); p0 = p1; p1 = p2; }
+  return p1;
+}
+function fact(k){ let f = 1; for (let i = 2; i <= k; i++) f *= i; return f; }
+/* normalised real hydrogen-like wavefunction, m = 0 */
+function psi(n, l, Z, x, y, z){
+  const r = Math.sqrt(x*x + y*y + z*z), rho = 2 * Z * r / n;
+  const N = Math.sqrt(Math.pow(2 * Z / n, 3) * fact(n - l - 1) / (2 * n * fact(n + l)));
+  const R = N * Math.pow(rho, l) * Math.exp(-rho / 2) * lag(n - l - 1, 2 * l + 1, rho);
+  const Y = Math.sqrt((2 * l + 1) / (4 * Math.PI)) * leg(l, r > 0 ? z / r : 1);
+  return R * Y;
+}
+const cdfCache = {};
+function radialCDF(n, l){
+  const key = n + '-' + l;
+  if (cdfCache[key]) return cdfCache[key];
+  const G = 1800, rhoMax = 4 * n + 24, cdf = new Float64Array(G + 1);
+  let acc = 0;
+  for (let i = 1; i <= G; i++){
+    const rho = (i / G) * rhoMax;
+    const R = Math.pow(rho, l) * Math.exp(-rho / 2) * lag(n - l - 1, 2 * l + 1, rho);
+    acc += rho * rho * R * R;
+    cdf[i] = acc;
+  }
+  for (let i = 0; i <= G; i++) cdf[i] /= acc;
+  return (cdfCache[key] = {cdf, G, rhoMax});
+}
+function sampleOrbital(n, l, Z, N, iso){
+  const C = radialCDF(n, l), out = new Float32Array(N * 3), k = n / (2 * Z);
+  for (let p = 0; p < N; p++){
+    const u = Math.random();
+    let lo = 0, hi = C.G;
+    while (hi - lo > 1){ const m = (lo + hi) >> 1; if (C.cdf[m] < u) lo = m; else hi = m; }
+    const f = (u - C.cdf[lo]) / ((C.cdf[hi] - C.cdf[lo]) || 1);
+    const r = ((lo + f) / C.G) * C.rhoMax * k;
+    let c;
+    if (iso || l === 0) c = 2 * Math.random() - 1;
+    else { do { c = 2 * Math.random() - 1; } while (Math.random() > Math.pow(leg(l, c), 2)); }
+    const s = Math.sqrt(1 - c * c), ph = 2 * Math.PI * Math.random();
+    out[p*3] = r * s * Math.cos(ph); out[p*3 + 1] = r * s * Math.sin(ph); out[p*3 + 2] = r * c;
+  }
+  let i90 = 0;
+  while (i90 < C.G && C.cdf[i90] < 0.9) i90++;
+  return {pts:out, r90:(i90 / C.G) * C.rhoMax * k};
+}
+const REF_R90 = sampleOrbital(1, 0, 1, 1).r90;   // hydrogen 1s sets the size reference
+const orbOf = i => { const L = atom.levels[i]; return {n:L.n, l:L.l, Z:atom.zeff}; };
+const orbState = (i, l) => ({n:atom.levels[i].n, l, Z:atom.zeff});
+
+const cloud = {
+  NV:5200, NC:1500,
+  cur:null, from:null, to:null, core:null,
+  t:1, dur:1, aFrom:0, aTo:0, alpha:0,
+  rFrom:REF_R90, rTo:REF_R90, r90:REF_R90,
+  coreA:0, coreFrom:0, coreTo:0, coreT:1,
+  yaw:0.5, pitch:0.42, dragging:false,
+  init(){
+    this.cur = new Float32Array(this.NV * 3);
+    this.from = new Float32Array(this.NV * 3);
+    this.to = new Float32Array(this.NV * 3);
+    const a = sampleOrbital(1, 0, 5.5, 350, true).pts, b = sampleOrbital(2, 1, 3.8, this.NC - 350, true).pts;
+    this.core = new Float32Array(this.NC * 3); this.core.set(a); this.core.set(b, a.length);
+  },
+  morphTo(o, instant){
+    const s = sampleOrbital(o.n, o.l, o.Z, this.NV);
+    if (this.alpha < 0.05){
+      for (let i = 0; i < s.pts.length; i++) this.from[i] = s.pts[i] * 0.05;
+      this.rFrom = s.r90;
+    } else { this.from.set(this.cur); this.rFrom = this.r90; }
+    this.to.set(s.pts);
+    this.aFrom = this.alpha; this.aTo = 1; this.rTo = s.r90;
+    this.t = 0; this.dur = reduce ? 0.3 : 0.9;
+    if (instant){ this.cur.set(this.to); this.alpha = 1; this.r90 = this.rTo; this.t = 1; }
+  },
+  disperse(){
+    this.from.set(this.cur);
+    for (let i = 0; i < this.cur.length; i++) this.to[i] = this.cur[i] * 6;
+    this.aFrom = this.alpha; this.aTo = 0; this.rFrom = this.rTo = this.r90;
+    this.t = 0; this.dur = reduce ? 0.3 : 1.2;
+  },
+  /* A jump: the electron is in a mix c1*psiA + c2*psiB. Half the points are
+     sampled from each state; each point's brightness is the mixed density
+     divided by the sampling density, so the cloud sloshes at the beat
+     frequency while the dots themselves stay put. */
+  beginTrans(oA, oB){
+    const h = this.NV >> 1, a = sampleOrbital(oA.n, oA.l, oA.Z, h), b = sampleOrbital(oB.n, oB.l, oB.Z, this.NV - h);
+    this.cur.set(a.pts); this.cur.set(b.pts, h * 3);
+    if (!this.PA){ this.PA = new Float64Array(this.NV); this.PB = new Float64Array(this.NV); this.W = new Float32Array(this.NV); }
+    for (let i = 0; i < this.NV; i++){
+      const x = this.cur[i*3], y = this.cur[i*3 + 1], z = this.cur[i*3 + 2];
+      this.PA[i] = psi(oA.n, oA.l, oA.Z, x, y, z);
+      this.PB[i] = psi(oB.n, oB.l, oB.Z, x, y, z);
+    }
+    this.trans = {rA:a.r90, rB:b.r90};
+    this.t = 1; this.alpha = 1; this.r90 = a.r90;
+    this.setTrans(0, 0);
+  },
+  setTrans(s, phase){
+    if (!this.trans) return;
+    const c1 = Math.cos(Math.PI * s / 2), c2 = Math.sin(Math.PI * s / 2), cph = Math.cos(phase);
+    const A = c1 * c1, B = c2 * c2, X = 2 * c1 * c2 * cph;
+    for (let i = 0; i < this.NV; i++){
+      const pa = this.PA[i], pb = this.PB[i], den = (pa * pa + pb * pb) / 2;
+      this.W[i] = den > 1e-30 ? Math.max(0, (A * pa * pa + B * pb * pb + X * pa * pb) / den) : 0;
+    }
+    this.r90 = this.trans.rA + (this.trans.rB - this.trans.rA) * s;
+  },
+  endTrans(oB){
+    if (!this.trans) return;
+    this.trans = null;
+    if (oB) this.morphTo(oB, true);
+  },
+  setCore(on, instant){
+    this.coreFrom = this.coreA; this.coreTo = on ? 1 : 0; this.coreT = 0;
+    if (instant){ this.coreA = this.coreTo; this.coreT = 1; }
+  },
+  step(dt){
+    if (this.t < 1 && !this.trans){
+      this.t = Math.min(1, this.t + dt / this.dur);
+      const e = easeIO(this.t), F = this.from, T = this.to, C = this.cur;
+      for (let i = 0; i < C.length; i++) C[i] = F[i] + (T[i] - F[i]) * e;
+      this.alpha = this.aFrom + (this.aTo - this.aFrom) * e;
+      this.r90 = this.rFrom + (this.rTo - this.rFrom) * e;
+    }
+    if (this.coreT < 1){
+      this.coreT = Math.min(1, this.coreT + dt / 0.6);
+      this.coreA = this.coreFrom + (this.coreTo - this.coreFrom) * this.coreT;
+    }
+    if (!this.dragging && !reduce && !this.trans) this.yaw += dt * 0.3;
+  }
+};
+cloud.init();
+
+const BINS = 6, BIN_A = [0.62, 0.52, 0.42, 0.33, 0.25, 0.18];
+const SX = new Float32Array(8000), SY = new Float32Array(8000), SS = new Float32Array(8000), SB = new Uint8Array(8000);
+
+function fitCanvas(cv){
+  const r = cv.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * d)), h = Math.max(1, Math.round(r.height * d));
+  if (cv.width !== w || cv.height !== h){ cv.width = w; cv.height = h; }
+  return d;
+}
+
+const WREP = [0.07, 0.35, 0.75, 1.25, 1.9, 2.8];
+function drawPoints(ctx, P, N, step, g, rgb, aMul, size, Wt){
+  const cyw = Math.cos(cloud.yaw), syw = Math.sin(cloud.yaw), cp = Math.cos(cloud.pitch), sp = Math.sin(cloud.pitch);
+  for (let i = 0; i < N; i += step){
+    const x = P[i*3], y = P[i*3 + 1], z = P[i*3 + 2];
+    const x1 = x * cyw - y * syw, y1 = x * syw + y * cyw;
+    const y2 = y1 * cp - z * sp, z2 = y1 * sp + z * cp;
+    const d = y2 * g.sc;
+    if (g.D + d < g.D * 0.06){ SB[i] = 255; continue; }
+    const pz = g.D / (g.D + d);
+    SX[i] = g.cx + x1 * g.sc * pz; SY[i] = g.cy - z2 * g.sc * pz; SS[i] = Math.min(pz, 5);
+    const db = clamp(Math.floor((d / (g.Rd || 1) + 1) * 0.5 * BINS), 0, BINS - 1);
+    let wb = 2;
+    if (Wt){ const w = Wt[i]; wb = w < 0.2 ? 0 : w < 0.55 ? 1 : w < 1.0 ? 2 : w < 1.55 ? 3 : w < 2.3 ? 4 : 5; }
+    SB[i] = db * 6 + wb;
+  }
+  for (let b = 0; b < BINS * 6; b++){
+    const db = (b / 6) | 0, wb = b % 6;
+    if (!Wt && wb !== 2) continue;
+    const a = Math.min(1, BIN_A[db] * aMul * (Wt ? WREP[wb] : 1));
+    if (a < 0.004) continue;
+    ctx.fillStyle = 'rgba(' + rgb + ',' + a.toFixed(3) + ')';
+    ctx.beginPath();
+    for (let i = 0; i < N; i += step){
+      if (SB[i] !== b) continue;
+      const s = size * SS[i];
+      ctx.rect(SX[i] - s / 2, SY[i] - s / 2, s, s);
+    }
+    ctx.fill();
+  }
+}
+
+function renderCloud(cv, o){
+  const ctx = cv.getContext && cv.getContext('2d');
+  if (!ctx) return;
+  const dpr = fitCanvas(cv), W = cv.width, H = cv.height, M = Math.min(W, H);
+  ctx.clearRect(0, 0, W, H);
+  if (o.fade <= 0.001) return;
+  const rpx = Math.min(M * 0.42, M * o.base * Math.pow(cloud.r90 / REF_R90, 0.45));
+  const g = {cx:W / 2, cy:H * (o.cyFrac || 0.5), sc:(rpx / cloud.r90) * o.zoom, D:M * 1.5, Rd:rpx * o.zoom};
+  ctx.globalCompositeOperation = 'lighter';
+  if (cloud.coreA > 0.01) drawPoints(ctx, cloud.core, cloud.NC, o.step, g, '190,150,255', cloud.coreA * o.fade * 0.9, o.size * dpr);
+  if (cloud.alpha > 0.01) drawPoints(ctx, cloud.cur, cloud.NV, o.step, g, '124,196,255', cloud.alpha * o.fade, o.size * dpr, cloud.trans ? cloud.W : null);
+  ctx.globalCompositeOperation = 'source-over';
+  /* nucleus */
+  const nr = Math.max(2, M * 0.007) * Math.sqrt(o.zoom);
+  const grad = ctx.createRadialGradient(g.cx, g.cy, 0, g.cx, g.cy, nr * 3);
+  grad.addColorStop(0, 'rgba(255,214,170,' + o.fade + ')');
+  grad.addColorStop(0.35, 'rgba(255,150,90,' + (0.8 * o.fade) + ')');
+  grad.addColorStop(1, 'rgba(255,120,60,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(g.cx, g.cy, nr * 3, 0, Math.PI * 2); ctx.fill();
+  /* scale bar */
+  if (o.bar && o.zoom < 1.05){
+    const nmPerPx = 0.0529 / g.sc;
+    const want = 90 * dpr * nmPerPx, nice = [0.01,0.02,0.05,0.1,0.2,0.5,1,2,5];
+    let best = nice[0];
+    nice.forEach(v => { if (Math.abs(Math.log(v / want)) < Math.abs(Math.log(best / want))) best = v; });
+    const len = best / nmPerPx, x1 = W - 22 * dpr, x0 = x1 - len, y = H - 22 * dpr;
+    ctx.globalAlpha = o.fade;
+    ctx.strokeStyle = '#93a8ba'; ctx.lineWidth = 1.5 * dpr;
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y);
+    ctx.moveTo(x0, y - 5 * dpr); ctx.lineTo(x0, y + 5 * dpr); ctx.moveTo(x1, y - 5 * dpr); ctx.lineTo(x1, y + 5 * dpr); ctx.stroke();
+    ctx.fillStyle = '#93a8ba'; ctx.font = (12.5 * dpr) + 'px ui-monospace,Menlo,Consolas,monospace'; ctx.textAlign = 'center';
+    ctx.fillText(best + ' nm', (x0 + x1) / 2, y - 9 * dpr);
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* =====================================================================
+   Well diagram geometry (viewBox 1000 x 650)
+   ===================================================================== */
+const CX = 520, WW = 290, Y0 = 120, YG = 505, STRIP_Y = 580, STRIP_H = 26;
+const LAMP = {x:126, y:100};
+const yOf = E => Y0 + (E / atom.levels[0].E) * (YG - Y0);
+function hw(E){
+  if (E >= 0) return WW;
+  const r = 2 * (-atom.levels[0].E) / (-E);
+  return WW * r / (r + 10);
+}
+function xLam(l){
+  if (l < 380){ const a = Math.log(90), b = Math.log(380); return 232 + (Math.log(Math.max(90, l)) - a) / (b - a) * 96; }
+  if (l <= 750) return 340 + (l - 380) / 370 * 460;
+  const a = Math.log(750), b = Math.log(12000);
+  return 812 + (Math.log(Math.min(12000, l)) - a) / (b - a) * 176;
+}
+
+const gCont = $('#gCont'), gAxis = $('#gAxis'), gWell = $('#gWell'), gLevels = $('#gLevels'), gIon = $('#gIon'),
+      gLabels = $('#gLabels'), gMag = $('#gMag'), gTrans = $('#gTrans'), gSpec = $('#gSpec'), gLines = $('#gLines'), gLamp = $('#gLamp'), aim = $('#aim'),
+      gFx = $('#gFx'), gElecL = $('#gElec'), gPhot = $('#gPhot'), gTip = $('#gTip');
+
+/* ---------- state ---------- */
+let view = 'atom', viewBusy = false, zoomK = 1, fullFade = 1, fullOn = true;
+let E = 2.00, inputOK = true;
+let cur = 0, curL = 0, busy = false, ionised = false, runToken = 0, transOn = false;
+let TRANS = [];
+const spectrum = new Map();
+
+/* ---------- tween engine ---------- */
+const tweens = [];
+function tween(ms, fn, tok){
+  if (tok === undefined) tok = runToken;
+  return new Promise(res => tweens.push({t0:performance.now(), ms:Math.max(1, ms), fn, res, tok}));
+}
+const wait = (ms, tok) => tween(ms, () => {}, tok);
+
+let rate = 1;                       /* 1 = normal, 3 = slow motion */
+const D = ms => ms * rate;          /* durations stretch */
+const TM = reduce ? {jump:120, trans:420, pause1:1300, pause2:850, meta:1800, settle:800, escape:700, hold:1400, speed:1100}
+                  : {jump:540, trans:1250, pause1:1300, pause2:800, meta:3600, settle:1100, escape:1400, hold:1500, speed:520};
+
+/* =====================================================================
+   Static parts: axis, spectrum strip, lamp, electron
+   ===================================================================== */
+let oscG, oscT, exTxt, lampLens, lampGlow, lampE, lampR, eG, eRing, eGhost, exTag, exBar, keLab;
+
+function buildStatic(){
+  /* energy axis */
+  el('line', {x1:222, y1:560, x2:222, y2:46, class:'axis'}, gAxis);
+  el('path', {d:'M216,56 L222,42 L228,56 Z', fill:'#4a6379'}, gAxis);
+  oscG = el('g', {opacity:0}, gAxis);
+  const o1 = el('text', {x:18, y:440, class:'svg-dim'}, oscG); o1.textContent = 'cloud oscillating at';
+  oscT = el('text', {x:18, y:459, class:'osc-f'}, oscG);
+  const o3 = el('text', {x:18, y:476, class:'svg-dim'}, oscG); o3.textContent = '(slowed down a lot)';
+  const at = el('text', {x:0, y:0, class:'svg-dim', 'text-anchor':'middle', transform:'translate(214,526) rotate(-90)'}, gAxis);
+  at.textContent = 'energy';
+
+  /* spectrum strip */
+  const t = el('text', {x:18, y:STRIP_Y + 17, class:'svg-note'}, gSpec); t.textContent = 'Emission spectrum';
+  const cb = el('text', {x:18, y:STRIP_Y + 40, class:'clear', tabindex:0, role:'button'}, gSpec); cb.textContent = 'Clear';
+  cb.addEventListener('click', clearSpectrum);
+  cb.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); clearSpectrum(); } });
+  el('rect', {x:230, y:STRIP_Y, width:100, height:STRIP_H, rx:3, fill:'#0e1b26', stroke:'#2c4459'}, gSpec);
+  el('rect', {x:810, y:STRIP_Y, width:180, height:STRIP_H, rx:3, fill:'#0e1b26', stroke:'#2c4459'}, gSpec);
+  for (let l = 380; l < 750; l += 5){
+    el('rect', {x:xLam(l).toFixed(1), y:STRIP_Y, width:(xLam(l + 5) - xLam(l) + 0.6).toFixed(1), height:STRIP_H,
+                fill:'rgb(' + specRGB(l + 2.5).join(',') + ')', opacity:.2}, gSpec);
+  }
+  el('rect', {x:340, y:STRIP_Y, width:460, height:STRIP_H, rx:2, fill:'none', stroke:'#2c4459'}, gSpec);
+  [['UV', 280], ['IR', 900]].forEach(a => { const z = el('text', {x:a[1], y:STRIP_Y + 17.5, class:'strip-zone', 'text-anchor':'middle'}, gSpec); z.textContent = a[0]; });
+  [['380 nm', 340, 'start'], ['750 nm', 800, 'end']].forEach(a => {
+    const z = el('text', {x:a[1], y:STRIP_Y + 40, class:'strip-end', 'text-anchor':a[2]}, gSpec); z.textContent = a[0];
+  });
+
+  /* light source */
+  const ang = Math.atan2(YG - LAMP.y, CX - LAMP.x) * 180 / Math.PI;
+  const g = el('g', {transform:'translate(' + LAMP.x + ',' + LAMP.y + ') rotate(' + ang.toFixed(2) + ')'}, gLamp);
+  lampGlow = el('circle', {cx:-4, cy:0, r:22, opacity:.3}, g);
+  el('rect', {x:-98, y:-9, width:14, height:18, rx:3, fill:'#56616d'}, g);
+  el('rect', {x:-88, y:-15, width:74, height:30, rx:6, fill:'url(#gHousing)', stroke:'#0d1822', 'stroke-width':1}, g);
+  for (let k = 0; k < 4; k++) el('line', {x1:-76 + k * 9, y1:-15, x2:-76 + k * 9, y2:15, stroke:'#3a4652', 'stroke-width':1.5}, g);
+  el('rect', {x:-17, y:-20, width:14, height:40, rx:3, fill:'#9aa4b0', stroke:'#4b535f'}, g);
+  lampLens = el('rect', {x:-5, y:-14, width:6, height:28, rx:2}, g);
+  const lt = el('text', {x:18, y:148, class:'lamp-t'}, gLamp); lt.textContent = 'Light source';
+  lampE = el('text', {x:18, y:171, class:'lamp-e'}, gLamp);
+  lampR = el('text', {x:18, y:191, class:'lamp-r'}, gLamp);
+  aim.setAttribute('d', 'M' + LAMP.x + ',' + LAMP.y + ' L' + CX + ',' + YG);
+
+  /* electron */
+  eGhost = el('circle', {cx:CX, cy:YG, r:9, class:'ghost', opacity:0}, gElecL);
+  eG = el('g', {}, gElecL);
+  el('circle', {r:20, fill:'#7cc4ff', opacity:.22}, eG);
+  eRing = el('circle', {r:14, class:'ering'}, eG);
+  el('circle', {r:8.5, fill:'url(#gElecGrad)'}, eG);
+  exTag = el('g', {opacity:0}, gElecL);
+  el('rect', {x:-62, y:-47, width:124, height:28, rx:6, fill:'#12212e', opacity:.88}, exTag);
+  exTxt = el('text', {x:0, y:-33, class:'ex-text', 'text-anchor':'middle'}, exTag); exTxt.textContent = 'excited state';
+  el('rect', {x:-36, y:-27, width:72, height:4, rx:2, fill:'#3d5d78'}, exTag);
+  exBar = el('rect', {x:-36, y:-27, width:72, height:4, rx:2, fill:'#f0b429'}, exTag);
+  keLab = el('text', {class:'ke-lab', opacity:0}, gElecL);
+  setElec(CX, YG);
+}
+
+function setElec(x, y){
+  const tr = 'translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ')';
+  eG.setAttribute('transform', tr);
+  exTag.setAttribute('transform', tr);
+}
+
+/* =====================================================================
+   Atom-dependent diagram
+   ===================================================================== */
+function buildWell(){
+  [gCont, gWell, gLevels, gLabels, gIon, gMag].forEach(g => { g.innerHTML = ''; });
+  const lv = atom.levels, E1 = lv[0].E, L = CX - WW - 24, R = CX + WW + 24;
+
+  /* continuum */
+  el('rect', {x:L, y:26, width:R - L, height:Y0 - 26, fill:'url(#hatch)'}, gCont);
+  const t1 = el('text', {x:CX, y:64, class:'svg-note', 'text-anchor':'middle'}, gCont);
+  t1.textContent = 'Above 0 eV the electron has escaped from the atom.';
+  const t2 = el('text', {x:CX, y:86, class:'svg-dim', 'text-anchor':'middle'}, gCont);
+  t2.textContent = 'The atom is now an ion.';
+  el('line', {x1:L, y1:Y0, x2:R, y2:Y0, class:'zero'}, gCont);
+
+  /* walls of the potential well */
+  const pts = s => {
+    const a = [];
+    for (let k = 0; k <= 96; k++){ const u = k / 96, En = 1.12 * E1 * Math.pow(1 - u, 2.2); a.push([CX + s * hw(En), yOf(En)]); }
+    return a;
+  };
+  const P = p => p[0].toFixed(1) + ',' + p[1].toFixed(1);
+  const Lp = pts(-1), Rp = pts(1);
+  el('path', {d:'M' + Lp.map(P).join(' L') + ' L' + Rp.slice().reverse().map(P).join(' L') + ' Z', fill:'#8fb4d4', opacity:.045}, gWell);
+  el('path', {d:'M' + Lp.map(P).join(' L') + ' L' + L + ',' + Y0, class:'wall'}, gWell);
+  el('path', {d:'M' + Rp.map(P).join(' L') + ' L' + R + ',' + Y0, class:'wall'}, gWell);
+
+  /* faint crowding levels */
+  atom.faint.forEach(Ef => { const y = yOf(Ef), h = hw(Ef); el('line', {x1:CX - h, y1:y, x2:CX + h, y2:y, class:'faint'}, gLevels); });
+
+  /* levels and labels */
+  lv.forEach((Lv, i) => {
+    const y = yOf(Lv.E), h = hw(Lv.E);
+    el('line', {x1:CX - h, y1:y, x2:CX + h, y2:y, class:'lvl' + (i === 0 ? ' gnd' : '')}, gLevels);
+  });
+  const items = [{y:Y0, name:atom.inf, val:'0 eV', x2:R - 4}];
+  for (let i = lv.length - 1; i >= 0; i--) items.push({y:yOf(lv[i].E), name:lv[i].name, val:fmtSigned(lv[i].E) + ' eV', x2:CX + hw(lv[i].E)});
+  let prev = -1e9;
+  items.forEach(it => { it.ly = Math.max(it.y, prev + 19); prev = it.ly; });
+  items.forEach(it => {
+    el('path', {d:'M' + (it.x2 + 4).toFixed(1) + ',' + it.y.toFixed(1) + ' L836,' + it.ly.toFixed(1), class:'lead2'}, gLabels);
+    const a = el('text', {x:842, y:(it.ly + 5).toFixed(1), class:'lv-name'}, gLabels); a.textContent = it.name;
+    const b = el('text', {x:994, y:(it.ly + 5).toFixed(1), class:'lv-val', 'text-anchor':'end'}, gLabels); b.textContent = it.val;
+  });
+  const gs = el('text', {x:(CX - hw(E1) - 10).toFixed(1), y:YG + 5, class:'svg-dim', 'text-anchor':'end'}, gLabels);
+  gs.textContent = 'ground state';
+
+  /* ionisation energy */
+  const xi = 250, ym = (YG + yOf(lv[1].E)) / 2;
+  el('line', {x1:xi, y1:YG - 2, x2:xi, y2:Y0 + 11, class:'ion-shaft'}, gIon);
+  el('path', {d:'M' + (xi - 6) + ',' + (Y0 + 13) + ' L' + xi + ',' + (Y0 + 1) + ' L' + (xi + 6) + ',' + (Y0 + 13) + ' Z', class:'ion-head'}, gIon);
+  const i1 = el('text', {x:xi + 9, y:ym - 3, class:'ion-txt'}, gIon); i1.textContent = 'ionisation energy';
+  const i2 = el('text', {x:xi + 9, y:ym + 15, class:'ion-val'}, gIon); i2.textContent = (-E1).toFixed(atom.dp) + ' eV';
+
+  $('#well').setAttribute('aria-label', 'Energy levels of ' + atom.name.toLowerCase() + ' inside its potential well, from ' + fmtSigned(E1) + ' eV up to 0 eV');
+}
+
+function buildTransitions(){
+  const lv = atom.levels, T = [];
+  for (let i = 0; i < lv.length; i++)
+    for (let j = i + 1; j < lv.length; j++)
+      if (atom.allowed(lv[i], lv[j])){ const g = rnd(lv[j].E - lv[i].E); T.push({lo:i, hi:j, gap:g, lam:HC / g, k:T.length}); }
+  return T;
+}
+function jumpName(t){
+  return atom.key === 'H' ? (t.hi + 1) + ' \u2192 ' + (t.lo + 1) : atom.levels[t.hi].name + ' \u2192 ' + atom.levels[t.lo].name;
+}
+
+function buildArrows(){
+  gTrans.innerHTML = '';
+  const lv = atom.levels, placed = [];
+  const order = TRANS.slice().sort((a, b) => a.lo - b.lo || a.hi - b.hi);
+  order.forEach(t => {
+    const Elo = lv[t.lo].E, Ehi = lv[t.hi].E, lim = hw(Elo) - 12;
+    const side = t.lo === 0 ? 0 : (t.lo % 2 === 1 ? -1 : 1);
+    const target = side * 0.55 * hw(Elo), qmax = Math.floor(lim / 8);
+    let best = null;
+    for (let q = -qmax; q <= qmax; q++){
+      const off = q * 8;
+      if (placed.some(p => Math.abs(p.off - off) < 16 && p.Elo <= Ehi + 1e-9 && Elo <= p.Ehi + 1e-9)) continue;
+      const score = Math.abs(off - target) - Math.abs(off) * 1e-3;
+      if (!best || score < best.score) best = {off, score};
+    }
+    const off = best ? best.off : target;
+    placed.push({off, Elo, Ehi});
+    t.x = CX + off;
+  });
+  TRANS.forEach(t => {
+    const ya = yOf(lv[t.hi].E), yb = yOf(lv[t.lo].E), col = photonColour(t.lam), L = yb - ya;
+    const g = el('g', {class:'arrow', tabindex:0, 'data-k':t.k, role:'img',
+                       'aria-label':jumpName(t) + ', ' + fmtE(t.gap) + ' eV, ' + fmtL(t.lam) + ' nanometres, ' + lightName(t.lam)}, gTrans);
+    el('line', {x1:t.x, y1:ya, x2:t.x, y2:yb, class:'hit'}, g);
+    const hs = Math.min(10, L * 0.5), hwid = Math.min(5.5, L * 0.32);
+    el('line', {x1:t.x, y1:ya, x2:t.x, y2:(yb - hs + 1).toFixed(1), stroke:col, class:'shaft'}, g);
+    el('path', {d:'M' + (t.x - hwid).toFixed(1) + ',' + (yb - hs).toFixed(1) + ' L' + (t.x + hwid).toFixed(1) + ',' + (yb - hs).toFixed(1) + ' L' + t.x + ',' + yb.toFixed(1) + ' Z', fill:col}, g);
+    el('circle', {cx:t.x, cy:ya.toFixed(1), r:2.4, fill:col}, g);
+    const on = () => hot(t.k), off = () => hot(-1);
+    g.addEventListener('pointerenter', on); g.addEventListener('pointerleave', off);
+    g.addEventListener('focus', on); g.addEventListener('blur', off);
+    g.addEventListener('click', () => { on(); showWork(t.k); });
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); on(); showWork(t.k); } });
+  });
+}
+
+function hot(k){
+  gTrans.querySelectorAll('.arrow').forEach(a => a.classList.toggle('hot', +a.dataset.k === k));
+  document.querySelectorAll('#tblTrans tr[data-k]').forEach(r => r.classList.toggle('hot', +r.dataset.k === k));
+  gTip.innerHTML = '';
+  if (k < 0 || !transOn) return;
+  const t = TRANS[k], lv = atom.levels, ym = (yOf(lv[t.hi].E) + yOf(lv[t.lo].E)) / 2;
+  const txt = jumpName(t) + ':  ' + fmtE(t.gap) + ' eV,  ' + fmtL(t.lam) + ' nm,  ' + lightName(t.lam);
+  const rect = el('rect', {y:(clamp(ym - 15, 30, 540)).toFixed(1), height:30, rx:6, fill:'#0e1b26', stroke:photonColour(t.lam), 'stroke-width':1.5}, gTip);
+  const tx = el('text', {y:(clamp(ym - 15, 30, 540) + 20).toFixed(1), class:'tip-t'}, gTip);
+  tx.textContent = txt;
+  let w = txt.length * 7.2;
+  try { w = tx.getComputedTextLength() || w; } catch (e) {}
+  w += 20;
+  let x = t.x + 14;
+  if (x + w > 996) x = t.x - 14 - w;
+  rect.setAttribute('x', x.toFixed(1)); rect.setAttribute('width', w.toFixed(1));
+  tx.setAttribute('x', (x + 10).toFixed(1));
+}
+
+/* =====================================================================
+   Close-up of the crowded upper levels. Redrawn per jump, so the main
+   diagram stays strictly to scale and only this inset is magnified.
+   ===================================================================== */
+const MG = {x:620, y:296, w:372, h:252, pad:22};
+let magDot = null, magMap = null, magClip = null, magPending = null;
+function showMag(iA, iB, gap){
+  hideMag();
+  if (!$('#optZoom').checked || iA === 0 || iB === 0) return;   /* only for the crowded region */
+  const yA = yOf(atom.levels[iA].E), yB = yOf(atom.levels[iB].E);
+  let top = Math.min(yA, yB), bot = Math.max(yA, yB);
+  const span = Math.max(6, bot - top);
+  const k = clamp((MG.h - 2 * MG.pad) / (span * 1.45), 1.6, 14);
+  const mid = (top + bot) / 2, cyP = MG.y + MG.h / 2;
+  magMap = y => cyP + (y - mid) * k;
+
+  el('rect', {x:MG.x, y:MG.y, width:MG.w, height:MG.h, rx:12, class:'mag-bg'}, gMag);
+  const cp = el('clipPath', {id:'clipMag'}, gMag);
+  el('rect', {x:MG.x + 2, y:MG.y + 2, width:MG.w - 4, height:MG.h - 4, rx:11}, cp);
+  magClip = el('g', {'clip-path':'url(#clipMag)'}, gMag);
+  const t = el('text', {x:MG.x + 14, y:MG.y + 20, class:'mag-t'}, gMag);
+  t.textContent = 'close-up \u00d7' + k.toFixed(1) + (rate > 1 ? '  \u00b7  slow motion' : '');
+
+  /* every level that falls inside the window, plus the faint crowd */
+  atom.faint.forEach(Ef => {
+    const y = magMap(yOf(Ef));
+    if (y > MG.y + 14 && y < MG.y + MG.h - 8)
+      el('line', {x1:MG.x + 18, y1:y.toFixed(1), x2:MG.x + MG.w - 96, y2:y.toFixed(1), class:'faint'}, gMag);
+  });
+  atom.levels.forEach((L, i) => {
+    const y = magMap(yOf(L.E));
+    if (y < MG.y + 26 || y > MG.y + MG.h - 10) return;
+    el('line', {x1:MG.x + 18, y1:y.toFixed(1), x2:MG.x + MG.w - 96, y2:y.toFixed(1),
+                class:'lvl', opacity:(i === iA || i === iB) ? 1 : .45}, gMag);
+    const n = el('text', {x:MG.x + MG.w - 88, y:(y + 4).toFixed(1), class:'mag-n'}, gMag);
+    n.textContent = L.name;
+    const v = el('text', {x:MG.x + MG.w - 12, y:(y + 4).toFixed(1), class:'mag-l', 'text-anchor':'end'}, gMag);
+    v.textContent = fmtSigned(L.E);
+  });
+
+  /* the jump itself */
+  const ax = MG.x + 54, ya = magMap(yA), yb = magMap(yB), up = iB > iA;
+  const col = photonColour(HC / gap), y1 = up ? ya : ya, y2 = up ? yb : yb, dir = y2 > y1 ? 1 : -1;
+  el('line', {x1:ax, y1:y1.toFixed(1), x2:ax, y2:(y2 - dir * 9).toFixed(1), stroke:col, 'stroke-width':2.4, 'stroke-dasharray':'5 4'}, gMag);
+  el('path', {d:'M' + (ax - 6) + ',' + (y2 - dir * 11).toFixed(1) + ' L' + (ax + 6) + ',' + (y2 - dir * 11).toFixed(1) +
+              ' L' + ax + ',' + y2.toFixed(1) + ' Z', fill:col}, gMag);
+  const g = el('text', {x:ax + 12, y:((y1 + y2) / 2 + 4).toFixed(1), class:'mag-l', fill:labelColour(HC / gap)}, gMag);
+  g.textContent = (up ? '+' : '') + fmtE(gap) + ' eV';
+
+  magDot = el('circle', {cx:MG.x + 96, cy:ya.toFixed(1), r:9, fill:'url(#gElecGrad)'}, magClip);
+}
+function magElec(y){ if (magDot && magMap) magDot.setAttribute('cy', magMap(y).toFixed(1)); }
+/* the same photon, shown leaving the magnified view */
+function magPhoton(gap, yMid){
+  if (!magMap || !magClip) return;
+  const ph = makePhoton(gap, magClip, 0.78), y = magMap(yMid);
+  ph.g.setAttribute('opacity', 0);
+  /* paced so the photon stays readable while it crosses the panel */
+  const x0 = MG.x + 152, x1 = MG.x + MG.w + 150;
+  const ms = clamp(D(TM.trans) * 0.8, 950, 1900), speed = (x1 - x0) / ms * 1000;
+  /* deliberately not cancellable, so the panel's wait always resolves even if
+     the run is cancelled mid-flight; the group it draws into is gone by then */
+  magPending = fly(ph, {x:x0, y}, {x:x1, y}, speed, null, true).then(() => { ph.g.remove(); magPending = null; });
+}
+function hideMag(){ gMag.innerHTML = ''; magDot = null; magMap = null; magClip = null; magPending = null; }
+
+/* ---------- worked calculation for one transition ---------- */
+const H_DS = 6.63e-34, C_DS = 3.00e8, E_DS = 1.60e-19;
+function sciHTML(x, sf){
+  const e = Math.floor(Math.log10(Math.abs(x))), m = x / Math.pow(10, e);
+  return m.toFixed(sf - 1) + ' \u00d7 10<sup>' + String(e).replace('-', '\u2212') + '</sup>';
+}
+function showWork(k){
+  const t = TRANS[k], lv = atom.levels, Ehi = lv[t.hi].E, Elo = lv[t.lo].E;
+  const gap = t.gap, J = gap * E_DS, lamM = H_DS * C_DS / J, f = J / H_DS;
+  $('#workTitle').textContent = 'Worked example: ' + jumpName(t);
+  $('#workSteps').innerHTML = [
+    ['Find the gap between the two levels. Subtract, keeping the minus signs.',
+     '\u0394E = E<sub>' + lv[t.hi].name.replace('n = ', '') + '</sub> \u2212 E<sub>' + lv[t.lo].name.replace('n = ', '') + '</sub> = (' +
+     fmtSigned(Ehi) + ') \u2212 (' + fmtSigned(Elo) + ') = <span class="ans">' + fmtE(gap) + ' eV</span>'],
+    ['Convert the energy from eV into joules, using 1 eV = 1.60 \u00d7 10<sup>\u221219</sup> J.',
+     'E = ' + fmtE(gap) + ' \u00d7 1.60 \u00d7 10<sup>\u221219</sup> = <span class="ans">' + sciHTML(J, 3) + ' J</span>'],
+    ['Find the wavelength from E = hc/\u03bb, so \u03bb = hc/E.',
+     '\u03bb = (6.63 \u00d7 10<sup>\u221234</sup> \u00d7 3.00 \u00d7 10<sup>8</sup>) \u00f7 ' + sciHTML(J, 3) +
+     ' = <span class="ans">' + sciHTML(lamM, 3) + ' m = ' + (lamM * 1e9).toPrecision(3) + ' nm</span>'],
+    ['Or find the frequency from E = hf, so f = E/h.',
+     'f = ' + sciHTML(J, 3) + ' \u00f7 6.63 \u00d7 10<sup>\u221234</sup> = <span class="ans">' + sciHTML(f, 3) + ' Hz</span>']
+  ].map(a => '<li>' + a[0] + '<span class="eq">' + a[1] + '</span></li>').join('');
+  const exact = fmtL(t.lam);
+  $('#workNote').innerHTML = 'Data-sheet values rounded to three figures give ' + (lamM * 1e9).toPrecision(3) +
+    ' nm. More precise constants give ' + exact + ' nm, which is the value in the table. Both are correct working; the small difference is rounding.' +
+    ' This is ' + lightName(t.lam) + ' light' + (t.lam >= 380 && t.lam <= 750 ? '.' : ', outside the visible range.');
+  $('#work').hidden = false;
+}
+function hideWork(){ $('#work').hidden = true; }
+
+/* ---------- spectrum lines ---------- */
+function addLine(lo, hi, lam){
+  const key = lo + '-' + hi, s = spectrum.get(key);
+  spectrum.set(key, {lam, n:(s ? s.n : 0) + 1});
+  drawLines(key);
+}
+function clearSpectrum(){ spectrum.clear(); drawLines(null); }
+function drawLines(fresh){
+  gLines.innerHTML = '';
+  const arr = Array.from(spectrum.entries()).map(e => ({key:e[0], lam:e[1].lam, n:e[1].n, x:xLam(e[1].lam)})).sort((a, b) => a.x - b.x);
+  arr.forEach(s => {
+    const col = photonColour(s.lam);
+    el('rect', {x:(s.x - 1.5).toFixed(1), y:STRIP_Y + 1, width:3, height:STRIP_H - 2, fill:col, opacity:Math.min(1, 0.6 + 0.13 * s.n).toFixed(2)}, gLines);
+    if (s.key === fresh && !reduce){
+      const f = el('rect', {x:(s.x - 5).toFixed(1), y:STRIP_Y - 4, width:10, height:STRIP_H + 8, rx:4, fill:col, opacity:.7}, gLines);
+      tween(700, p => { f.setAttribute('opacity', (0.7 * (1 - p)).toFixed(2)); }, null);
+    }
+  });
+  let lastX = -1e9;
+  arr.forEach(s => {
+    if (s.x - lastX < 46) return;
+    const t = el('text', {x:s.x.toFixed(1), y:STRIP_Y + 57, class:'line-lab', 'text-anchor':'middle', fill:labelColour(s.lam)}, gLines);
+    t.textContent = fmtL(s.lam);
+    lastX = s.x;
+  });
+}
+
+/* =====================================================================
+   Photons
+   ===================================================================== */
+function makePhoton(En, parent, scale){
+  const lam = HC / En, col = photonColour(lam), g = el('g', {}, parent || gPhot);
+  const k = scale || 1;
+  const ph = {g, lam,
+    glow:el('path', {fill:'none', stroke:col, 'stroke-width':8 * k, opacity:.2, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, g),
+    wave:el('path', {fill:'none', stroke:col, 'stroke-width':2.6 * k, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, g),
+    head:el('path', {fill:col}, g),
+    lab:el('text', {class:'ph-lab', fill:labelColour(lam), 'font-size':(14 * k).toFixed(1)}, g),
+    k:k, period:clamp(8 + 11 * Math.log10(lam / 100), 6, 32) * k};
+  ph.lab.textContent = fmtE(En) + ' eV';
+  return ph;
+}
+function placePhoton(ph, x, y, ux, uy){
+  const k = ph.k || 1, LEN = 78 * k, A = 7 * k, N = 40, nx = -uy, ny = ux;
+  let d = '';
+  for (let i = 0; i <= N; i++){
+    const u = i / N, s = -11 * k - u * LEN, env = Math.sin(Math.PI * u);
+    const lat = A * env * Math.sin(2 * Math.PI * s / ph.period);
+    d += (i ? 'L' : 'M') + (x + ux * s + nx * lat).toFixed(1) + ',' + (y + uy * s + ny * lat).toFixed(1);
+  }
+  ph.wave.setAttribute('d', d); ph.glow.setAttribute('d', d);
+  const bx = x - ux * 12 * k, by = y - uy * 12 * k;
+  ph.head.setAttribute('d', 'M' + x.toFixed(1) + ',' + y.toFixed(1) + ' L' + (bx + nx * 6 * k).toFixed(1) + ',' + (by + ny * 6 * k).toFixed(1) +
+                            ' L' + (bx - nx * 6 * k).toFixed(1) + ',' + (by - ny * 6 * k).toFixed(1) + ' Z');
+  const up = ny < 0 ? 1 : -1, lx = x - ux * 50 * k + nx * up * 24 * k, ly = y - uy * 50 * k + ny * up * 24 * k;
+  ph.lab.setAttribute('x', lx.toFixed(1)); ph.lab.setAttribute('y', (ly + 5).toFixed(1));
+  ph.lab.setAttribute('text-anchor', nx * up >= 0 ? 'start' : 'end');
+}
+function fly(ph, a, b, speed, tok, fadeIn){
+  const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+  return tween(L / speed * 1000, p => {
+    placePhoton(ph, a.x + dx * p, a.y + dy * p, ux, uy);
+    if (fadeIn) ph.g.setAttribute('opacity', Math.min(1, p * 7).toFixed(2));
+  }, tok);
+}
+function flash(pt, col, tok){
+  const c = el('circle', {cx:pt.x, cy:pt.y, r:6, fill:'none', stroke:col, 'stroke-width':3}, gFx);
+  tween(420, p => { c.setAttribute('r', (6 + 26 * p).toFixed(1)); c.setAttribute('opacity', (1 - p).toFixed(2)); }, tok).then(() => c.remove());
+}
+function tempArrow(x, ya, yb, col, label, tok, ms){
+  const g = el('g', {}, gFx), dir = yb > ya ? 1 : -1;
+  const shaft = el('line', {x1:x, y1:ya, x2:x, y2:ya, stroke:col, 'stroke-width':2.4, 'stroke-dasharray':'5 4'}, g);
+  const head = el('path', {fill:col, opacity:0}, g);
+  let lab = null;
+  if (label){
+    lab = el('text', {x:x - 10, y:((ya + yb) / 2 + 5).toFixed(1), class:'fx-lab', 'text-anchor':'end', fill:col, opacity:0}, g);
+    lab.textContent = label;
+  }
+  tween(ms || TM.jump, p => {
+    const y = ya + (yb - ya) * easeOut(p);
+    shaft.setAttribute('y2', (y - dir * 6).toFixed(1));
+    head.setAttribute('d', 'M' + (x - 6) + ',' + (y - dir * 10).toFixed(1) + ' L' + (x + 6) + ',' + (y - dir * 10).toFixed(1) + ' L' + x + ',' + y.toFixed(1) + ' Z');
+    head.setAttribute('opacity', 1);
+    if (lab) lab.setAttribute('opacity', p.toFixed(2));
+  }, tok)
+    .then(() => wait(TM.hold, tok))
+    .then(() => tween(450, p => g.setAttribute('opacity', (1 - p).toFixed(2)), tok))
+    .then(() => g.remove());
+}
+
+/* =====================================================================
+   Physics: what happens to a photon
+   ===================================================================== */
+function classify(Ep){
+  const lv = atom.levels, c = cur, Ec = lv[c].E, IE = -Ec;
+  if (Ep >= IE - tolIn(IE)) return {type:'ionise', KE:Math.max(0, Ep - IE)};
+  let forb = null, best = null, hit = null;
+  for (let j = c + 1; j < lv.length; j++){
+    const g = rnd(lv[j].E - Ec), d = Math.abs(Ep - g), ok = atom.allowed(lv[c], lv[j]);
+    if (d <= tolIn(g)){
+      if (ok){ if (!hit || d < hit.d) hit = {type:'absorb', to:j, gap:g, d}; }
+      else if (!forb || d < forb.d) forb = {type:'forbidden', to:j, gap:g, d};
+    }
+    if (ok && (!best || d < best.d)) best = {d, g};
+  }
+  if (hit) return hit;
+  if (forb) return forb;
+  for (const t of TRANS){
+    if (t.lo === c || t.hi === c) continue;
+    if (Math.abs(Ep - t.gap) <= tolIn(t.gap)) return {type:'other', t};
+  }
+  const top = rnd(lv[lv.length - 1].E - Ec);
+  if (Ep > top + tolIn(top)) return {type:'above'};
+  if (best && best.d <= Math.max(0.3, 0.03 * best.g)) return {type:'near', gap:best.g};
+  return {type:'miss'};
+}
+
+function missMessage(res, Ep){
+  const nm = atom.levels[cur].name, e = num(fmtE(Ep) + ' eV');
+  const art = x => x === 's' ? 'an' : 'a';
+  switch (res.type){
+    case 'forbidden': {
+      const a = LNAME[atom.levels[cur].l], b = LNAME[atom.levels[res.to].l];
+      const to = a === b ? 'another ' + b + ' level' : art(b) + ' ' + b + ' level';
+      return 'Not absorbed. ' + e + ' matches the gap from ' + nm + ' to ' + atom.levels[res.to].name +
+             ', but the electron cannot jump from ' + art(a) + ' ' + a + ' level to ' + to + '. It only jumps between s and p, or between p and d.';
+    }
+    case 'other':
+      return 'Not absorbed. ' + e + ' matches the gap between ' + atom.levels[res.t.lo].name + ' and ' + atom.levels[res.t.hi].name +
+             ', but the electron is in ' + nm + '. The photon must match a gap from the level the electron is in now.';
+    case 'above':
+      return 'Not absorbed. ' + e + ' is more than the gap to the top level shown, but less than the ionisation energy. ' + atom.above;
+    case 'near': {
+      const g = res.gap;
+      return 'Not absorbed. ' + e + ' is close to the ' + num(fmtE(g) + ' eV') + ' gap from ' + nm +
+             ', but the photon has to match it exactly. A photon is taken whole or not at all, and there is nowhere for the odd ' +
+             num(fmtE(Math.abs(Ep - g)) + ' eV') + ' to go, so it passes straight through.';
+    }
+    default:
+      return 'Not absorbed. ' + e + ' does not match any gap from ' + nm + ', so the photon passes straight through.';
+  }
+}
+
+/* ---------- challenges ---------- */
+function renderChallenges(){
+  const list = CHALLENGES[atom.key], d = done[atom.key];
+  $('#chalList').innerHTML = list.map(c => '<li data-id="' + c.id + '" class="' + (d.has(c.id) ? 'done' : '') + '"><span class="tick" aria-hidden="true"></span><span>' + c.text + '</span></li>').join('');
+  $('#chalCount').textContent = '(' + d.size + ' of ' + list.length + ')';
+}
+function complete(id){
+  const d = done[atom.key];
+  if (d.has(id)) return null;
+  d.add(id);
+  renderChallenges();
+  const li = $('#chalList li[data-id="' + id + '"]');
+  if (li){ li.classList.add('pop'); li.querySelector('.tick').setAttribute('aria-label', 'done'); }
+  return CHALLENGES[atom.key].find(c => c.id === id).text;
+}
+const chalHTML = arr => arr.filter(Boolean).map(t => '<span class="chal-done">Challenge done: ' + t + '</span>').join('');
+
+/* =====================================================================
+   The photon sequence
+   ===================================================================== */
+const statusEl = $('#status');
+function setStatus(html, cls){ statusEl.className = 'verdict' + (cls ? ' ' + cls : ''); statusEl.innerHTML = html; }
+function idleMessage(){
+  return atom.key === 'H'
+    ? 'The electron is in the ground state, n = 1. Set the photon energy, then fire a photon.'
+    : 'The outer electron is in the ground state, 3s. Set the photon energy, then fire a photon.';
+}
+function syncButtons(){
+  $('#btnFire').disabled = busy || ionised || viewBusy;
+  $('#btnReset').hidden = !ionised;
+  aim.setAttribute('opacity', busy || ionised ? '.12' : '.4');
+}
+const shapeName = (i, l) => atom.levels[i].n + LNAME[l];
+function capFor(i, l){ return atom.key === 'H' ? atom.levels[i].name + ' (' + shapeName(i, l) + ')' : atom.levels[i].name; }
+function updateInsetCap(){ $('#insetCap').textContent = ionised ? atom.ionName + ' ion' : capFor(cur, curL); }
+
+/* Jumps down that give one photon: l must change by 1. In hydrogen the 2s
+   state is metastable (no single-photon decay), so paths into it are left out. */
+function decayOptions(){
+  const opts = [];
+  if (atom.key === 'H'){
+    for (let k = 0; k < cur; k++){
+      const n2 = k + 1;
+      [curL - 1, curL + 1].forEach(l2 => {
+        if (l2 < 0 || l2 >= n2) return;
+        /* 2s is metastable, so np -> 2s is much weaker than np -> 1s */
+        opts.push({k, l:l2, w:(n2 === 2 && l2 === 0) ? 0.14 : 1});
+      });
+    }
+  } else {
+    for (let k = 0; k < cur; k++) if (atom.allowed(atom.levels[k], atom.levels[cur])) opts.push({k, l:atom.levels[k].l, w:1});
+  }
+  return opts;
+}
+let forcePick = false;      /* test hook: take the weak 2s branch on purpose */
+function pickDecay(opts){
+  if (forcePick){ const o = opts.find(x => x.w < 1); if (o) return o; }
+  let tot = 0;
+  opts.forEach(o => { tot += o.w; });
+  let r = Math.random() * tot;
+  for (const o of opts){ r -= o.w; if (r <= 0) return o; }
+  return opts[opts.length - 1];
+}
+const isMeta = () => atom.key === 'H' && cur === 1 && curL === 0;
+const SUP = {'-':'\u207B','0':'\u2070','1':'\u00B9','2':'\u00B2','3':'\u00B3','4':'\u2074','5':'\u2075','6':'\u2076','7':'\u2077','8':'\u2078','9':'\u2079'};
+function sci(x){
+  const e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e);
+  return m.toFixed(2) + ' \u00D7 10' + String(e).split('').map(c => SUP[c]).join('') + ' Hz';
+}
+function showOsc(gap, iA, lA, iB, lB){
+  oscT.textContent = sci(gap / EV_S);
+  oscG.setAttribute('opacity', 1);
+  $('#inset').classList.add('osc');
+  $('#insetCap').textContent = shapeName(iA, lA) + ' + ' + shapeName(iB, lB);
+}
+function hideOsc(){ oscG.setAttribute('opacity', 0); $('#inset').classList.remove('osc'); }
+/* on-screen beat rate: faster for bigger gaps, like the real frequency */
+const visFreq = gap => 2.2 + 3.0 * gap / (-atom.levels[0].E);
+
+/* run one jump between two states, with the cloud sloshing */
+function jump(iA, lA, iB, lB, gap, tok, onTick){
+  const ya = yOf(atom.levels[iA].E), yb = yOf(atom.levels[iB].E), fv = visFreq(gap), secs = D(TM.trans) / 1000;
+  cloud.beginTrans(orbState(iA, lA), orbState(iB, lB));
+  showOsc(gap, iA, lA, iB, lB);
+  showMag(iA, iB, gap);
+  return tween(D(TM.trans), p => {
+    const s = easeIO(p);
+    setElec(CX, ya + (yb - ya) * s);
+    magElec(ya + (yb - ya) * s);
+    cloud.setTrans(s, reduce ? Math.PI / 2 : 2 * Math.PI * fv * p * secs);
+    if (onTick) onTick(p, ya, yb);
+  }, tok).then(() => {
+    cloud.endTrans(orbState(iB, lB));
+    hideOsc();
+    return magPending || Promise.resolve();      /* let an emitted photon leave the panel first */
+  }).then(() => { hideMag(); });
+}
+
+async function fire(){
+  if (busy || ionised || view !== 'well' || viewBusy) return;
+  if (!inputOK){ setStatus('Type a positive number for the energy, wavelength or frequency first.', 'bad'); return; }
+  const tok = ++runToken;
+  busy = true; syncButtons();
+  const Ep = E, res = classify(Ep), lam = HC / Ep, col = photonColour(lam);
+  const hit = {x:CX, y:yOf(atom.levels[cur].E)};
+  const ph = makePhoton(Ep);
+  setStatus('Photon on its way: ' + num(fmtE(Ep) + ' eV') + '.', '');
+  await fly(ph, LAMP, hit, TM.speed, tok);
+  if (tok !== runToken) return;
+
+  /* ---- ionisation ---- */
+  if (res.type === 'ionise'){
+    ph.g.remove(); flash(hit, col, tok);
+    const nm = atom.levels[cur].name, IE = -atom.levels[cur].E, ke = res.KE;
+    let msg = ke < 0.5 * Math.pow(10, -atom.dp)
+      ? 'Ionised. ' + num(fmtE(Ep) + ' eV') + ' is exactly the energy needed to free the electron from ' + nm + '. It escapes with almost no kinetic energy. The atom is now an ion, ' + atom.ionName + '.'
+      : 'Ionised. ' + num(fmtE(Ep) + ' eV') + ' is more than the ' + num(fmtE(IE) + ' eV') + ' needed to free the electron from ' + nm +
+        '. The extra ' + num(fmtE(ke) + ' eV') + ' becomes the kinetic energy of the electron. The atom is now an ion, ' + atom.ionName + '.';
+    if (Math.abs(ke - atom.freeKE) <= 0.02) msg += chalHTML([complete('free')]);
+    setStatus(msg, 'free');
+    cloud.disperse();
+    tempArrow(CX - 46, hit.y, Y0, '#f0b429', fmtE(IE) + ' eV to escape', tok, D(TM.jump));
+    keLab.textContent = 'kinetic energy ' + fmtE(ke) + ' eV';
+    const dur = D(TM.escape) / (0.75 + 0.25 * Math.sqrt(Math.min(ke, 9)));
+    await tween(dur, p => {
+      const e = p * p, x = CX + 230 * e * e, y = hit.y + (-40 - hit.y) * e;
+      setElec(x, y);
+      keLab.setAttribute('x', (x + 18).toFixed(1)); keLab.setAttribute('y', (y - 12).toFixed(1));
+      keLab.setAttribute('opacity', (p < 0.1 ? p * 10 : p > 0.85 ? (1 - p) / 0.15 : 1).toFixed(2));
+    }, tok);
+    if (tok !== runToken) return;
+    ionised = true; busy = false;
+    eG.setAttribute('opacity', 0); eGhost.setAttribute('opacity', .6); keLab.setAttribute('opacity', 0);
+    updateInsetCap(); syncButtons();
+    return;
+  }
+
+  /* ---- passes straight through ---- */
+  if (res.type !== 'absorb'){
+    const extra = [];
+    if (res.type === 'other' && atom.key === 'H') extra.push(complete('trap'));
+    if (res.type === 'forbidden' && atom.key === 'Na') extra.push(complete('rule'));
+    setStatus(missMessage(res, Ep) + chalHTML(extra), 'bad');
+    const dx = hit.x - LAMP.x, dy = hit.y - LAMP.y, L = Math.hypot(dx, dy);
+    await fly(ph, hit, {x:hit.x + dx / L * 640, y:hit.y + dy / L * 640}, TM.speed, tok);
+    if (tok !== runToken) return;
+    ph.g.remove(); busy = false; syncButtons();
+    return;
+  }
+
+  /* ---- absorbed ---- */
+  ph.g.remove(); flash(hit, col, tok);
+  const from = atom.levels[cur].name, j = res.to, toName = atom.levels[j].name;
+  const exact = Math.abs(Ep - res.gap) < exactTol();
+  const match = exact
+    ? 'Absorbed. ' + num(fmtE(Ep) + ' eV') + ' is exactly the gap from ' + from + ' to ' + toName
+    : 'The gap from ' + from + ' to ' + toName + ' is exactly ' + num(fmtE(res.gap) + ' eV') + ', and your figures come to ' +
+      num(fmtE(Ep) + ' eV') + ' \u2014 that difference is rounding in <i>h</i> and <i>c</i>, not a different photon';
+  setStatus((exact ? match : 'Absorbed. ' + match) + ', so the electron jumps up to ' + toName + '.', 'good');
+  const lUp = atom.key === 'H' ? curL + 1 : atom.levels[j].l;
+  tempArrow(CX - 46, hit.y, yOf(atom.levels[j].E), col, '+' + fmtE(res.gap) + ' eV', tok, D(TM.trans));
+  await jump(cur, curL, j, lUp, res.gap, tok);
+  if (tok !== runToken) return;
+  cur = j; curL = lUp; updateInsetCap();
+
+  const emitted = [], extra = [];
+  let first = true, usedMeta = false;
+  while (cur > 0){
+    const meta = isMeta();
+    exTxt.textContent = meta ? 'metastable state' : 'excited state';
+    exTag.setAttribute('opacity', 1); eRing.classList.add('on');
+    if (meta){
+      usedMeta = true;
+      setStatus('The electron is stuck in 2s. This is a <b>metastable</b> state: it cannot give off a single photon, because a jump to 1s would not change the shape of the cloud. So it waits here far longer than a normal excited state.', '');
+    }
+    const pause = meta ? TM.meta : (first ? TM.pause1 : TM.pause2);
+    await tween(pause, p => exBar.setAttribute('width', (72 * (1 - p)).toFixed(1)), tok);
+    if (tok !== runToken) return;
+    exTag.setAttribute('opacity', 0); eRing.classList.remove('on');
+    first = false;
+
+    /* ---- two-photon decay out of 2s ---- */
+    if (meta){
+      const gT = rnd(atom.levels[cur].E - atom.levels[0].E);
+      let f = (Math.random() + Math.random() + Math.random()) / 3;       /* peaks near an even split */
+      f = clamp(f, 0.18, 0.82);
+      const g1 = rnd(gT * f), g2 = rnd(gT - g1);
+      const ya = yOf(atom.levels[cur].E), yb = YG, ax = CX + 46;
+      setStatus('Instead it gives off <b>two</b> photons at once, sharing the ' + num(fmtE(gT) + ' eV') + ': ' +
+                num(fmtE(g1) + ' eV') + ' and ' + num(fmtE(g2) + ' eV') +
+                '. The share is different every time, so these photons make a continuous band, not a line.', '');
+      tempArrow(ax, ya, yb, '#cfdbe6', null, tok, D(TM.trans));
+      [[g1, -17], [g2, 17]].forEach((a, idx) => {
+        const ep = makePhoton(a[0]), y = (ya + yb) / 2 + a[1];
+        ep.g.setAttribute('opacity', 0);
+        setTimeout(() => {
+          if (tok !== runToken){ ep.g.remove(); return; }
+          fly(ep, {x:ax + 8, y}, {x:1090, y}, TM.speed, tok, true).then(() => ep.g.remove());
+        }, 260 + idx * 90);
+      });
+      cloud.morphTo(orbState(0, 0));
+      await tween(D(TM.trans), p => setElec(CX, ya + (yb - ya) * easeIO(p)), tok);
+      if (tok !== runToken) return;
+      cur = 0; curL = 0; updateInsetCap(); emitted.push(g1, g2);
+      continue;
+    }
+
+    const pick = pickDecay(decayOptions());
+    const hi = cur, lHi = curL, k = pick.k;
+    const g = rnd(atom.levels[hi].E - atom.levels[k].E), l2 = HC / g, c2 = photonColour(l2);
+    setStatus('The electron falls to ' + atom.levels[k].name + ' and gives off a ' + num(fmtE(g) + ' eV') +
+              ' photon (' + fmtL(l2) + ' nm, ' + lightName(l2) + ').', '');
+    const ax = CX + 46;
+    tempArrow(ax, yOf(atom.levels[hi].E), yOf(atom.levels[k].E), c2, null, tok, D(TM.trans));
+    if (atom.key === 'H' && lightName(l2) === 'red') extra.push(complete('red'));
+    if (atom.key === 'Na' && atom.levels[hi].name === '3p' && atom.levels[k].name === '3s') extra.push(complete('yellow'));
+    let launched = false;
+    await jump(hi, lHi, k, pick.l, g, tok, (p, ya, yb) => {
+      if (launched || p < 0.5) return;
+      launched = true;
+      /* the photon leaves the dotted arrow and heads off to the right */
+      const ep = makePhoton(g), y = (ya + yb) / 2;
+      ep.g.setAttribute('opacity', 0);
+      fly(ep, {x:ax + 8, y}, {x:1090, y}, TM.speed, tok, true)
+        .then(() => { ep.g.remove(); addLine(k, hi, l2); });
+      magPhoton(g, y);
+    });
+    if (tok !== runToken) return;
+    cur = k; curL = pick.l; updateInsetCap(); emitted.push(g);
+  }
+  await wait(TM.settle, tok);
+  if (tok !== runToken) return;
+  if (emitted.length >= 3) extra.push(complete('three'));
+  const sum = rnd(emitted.reduce((a, b) => a + b, 0));
+  const msg = (emitted.length === 1
+    ? 'Back in the ground state. One photon of ' + num(fmtE(sum) + ' eV') + ' was given off: the same energy that was absorbed.'
+    : 'Back in the ground state. Photons given off: ' + num(emitted.map(fmtE).join(' + ') + ' = ' + fmtE(sum) + ' eV') + ', the same energy that was absorbed.')
+    + (usedMeta ? ' The two photons from 2s share their energy differently each time, so they are not drawn on the spectrum.' : '');
+  setStatus(msg + chalHTML(extra), 'good');
+  busy = false; syncButtons();
+}
+
+function resetAtom(){
+  if (!ionised || busy) return;
+  ionised = false; cur = 0; curL = atom.levels[0].l;
+  eGhost.setAttribute('opacity', 0);
+  setElec(CX, YG);
+  tween(400, p => eG.setAttribute('opacity', p.toFixed(2)), null);
+  cloud.morphTo(orbOf(0));
+  updateInsetCap(); syncButtons();
+  setStatus('The atom has been reset. Its electron is back in the ground state.', '');
+  $('#btnFire').focus();
+}
+
+function cancelRun(){
+  runToken++;
+  const wasTrans = !!cloud.trans;
+  busy = false; ionised = false; cur = 0; curL = atom.levels[0].l;
+  if (wasTrans) cloud.endTrans(orbOf(0));
+  if (oscG) hideOsc();
+  gPhot.innerHTML = ''; gFx.innerHTML = ''; if (gMag) hideMag();
+  exTag.setAttribute('opacity', 0); eRing.classList.remove('on');
+  keLab.setAttribute('opacity', 0); eGhost.setAttribute('opacity', 0); eG.setAttribute('opacity', 1);
+  setElec(CX, YG);
+  updateInsetCap(); syncButtons();
+}
+
+/* =====================================================================
+   Light source inputs
+   ===================================================================== */
+const inE = $('#inE'), inL = $('#inL'), inF = $('#inF'), slider = $('#slider');
+
+function updateLamp(){
+  const lam = HC / E, col = photonColour(lam);
+  lampLens.setAttribute('fill', col); lampGlow.setAttribute('fill', col); aim.setAttribute('stroke', col);
+  lampE.textContent = fmtE(E) + ' eV';
+  lampR.textContent = fmtL(lam) + ' nm, ' + lightName(lam);
+}
+/* A wavelength or frequency typed to 3 s.f. carries its own rounding, so the
+   match tolerance widens by that amount (capped). Typed eV stays strict. */
+let slack = 0;
+/* An energy typed in eV must match to the precision shown on the diagram:
+   nothing is "close enough". A wavelength or frequency is allowed the
+   rounding it carries from its own figures and from h and c, because that
+   error is in the student's arithmetic, not in the photon. */
+function exactTol(){ return 0.5 * Math.pow(10, -atom.dp) + 1e-9; }
+function tolIn(g){ return slack ? Math.max(exactTol(), g * Math.min(0.01, 0.004 + slack)) : exactTol(); }
+function typedSlack(str, v){
+  const m = str.trim().replace(',', '.').match(/^\+?(\d*)\.?(\d*)$/);
+  if (!m || !v) return 0.005;
+  return 0.5 * Math.pow(10, -m[2].length) / v;
+}
+function setE(v, src){
+  E = v; inputOK = true;
+  if (src === 'S' || src === 'E') slack = 0;
+  [inE, inL, inF].forEach(i => i.classList.remove('invalid'));
+  if (src !== 'E') inE.value = E.toFixed(atom.dp);
+  if (src !== 'L') inL.value = fmtL(HC / E);
+  if (src !== 'F') inF.value = fmtF(E / EV_S / 1e14);
+  if (src !== 'S') slider.value = clamp(E, 0.5, atom.emax);
+  updateLamp();
+}
+function parseField(s){
+  s = s.trim().replace(',', '.');
+  return /^\+?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s) ? parseFloat(s) : NaN;
+}
+function hookField(input, src, toE, ok){
+  input.addEventListener('input', () => {
+    const v = parseField(input.value);
+    if (ok(v)){ setE(toE(v), src); if (src !== 'E') slack = typedSlack(input.value, v); }
+    else { inputOK = false; input.classList.add('invalid'); }
+  });
+  input.addEventListener('blur', () => { if (inputOK) setE(E, null); });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); if (inputOK) setE(E, null); fire(); } });
+}
+hookField(inE, 'E', v => v, v => v > 0.01 && v <= 500);
+hookField(inL, 'L', v => HC / v, v => v >= 2.5 && v <= 1e6);
+hookField(inF, 'F', v => v * 1e14 * EV_S, v => v > 0.0025 && v <= 1200);
+slider.addEventListener('input', () => setE(parseFloat(slider.value), 'S'));
+
+function updateTolHint(){
+  const t = (0.5 * Math.pow(10, -atom.dp)).toFixed(atom.dp + 1);
+  $('#tolHint').innerHTML = 'A photon is absorbed only if it matches a gap <b>exactly</b>: to ' + atom.dp +
+    ' decimal places in eV, so within \u00b1' + t + ' eV. Wavelength and frequency allow a little more, for rounding in <i>h</i> and <i>c</i>.';
+}
+function sliderGradient(){
+  const lo = 0.5, hi = atom.emax, pct = e => (clamp((e - lo) / (hi - lo), 0, 1) * 100).toFixed(2) + '%';
+  const stops = ['#3a2320 0%', '#7a3a2b ' + pct(HC / 750)];
+  for (let l = 750; l >= 380; l -= 25){ stops.push('rgb(' + specRGB(l).join(',') + ') ' + pct(HC / l)); }
+  stops.push('#6d5aa8 ' + pct(HC / 370), '#2d2742 100%');
+  slider.style.background = 'linear-gradient(90deg,' + stops.join(',') + ')';
+}
+
+/* =====================================================================
+   Tables
+   ===================================================================== */
+function buildTables(){
+  const lv = atom.levels;
+  let h = '<table><thead><tr><th>Level</th><th>Energy / eV</th><th>To free it / eV</th></tr></thead><tbody>';
+  h += '<tr><td class="nm">' + atom.inf + '</td><td>0</td><td>0</td></tr>';
+  for (let i = lv.length - 1; i >= 0; i--)
+    h += '<tr><td class="nm">' + lv[i].name + (i === 0 ? '<span class="g">ground</span>' : '') + '</td><td>' + fmtSigned(lv[i].E) + '</td><td>' + fmtE(-lv[i].E) + '</td></tr>';
+  $('#tblLevels').innerHTML = h + '</tbody></table>';
+  applyTrans();
+}
+function applyTrans(){
+  gTrans.style.display = transOn ? '' : 'none';
+  const b = $('#btnTrans');
+  b.textContent = transOn ? 'Hide transitions' : 'Show all transitions';
+  b.setAttribute('aria-pressed', transOn);
+  const note = $('#transNote'), tbl = $('#tblTrans');
+  if (!transOn){
+    note.textContent = 'Press Show all transitions to list every possible jump down and the photon it gives off.';
+    tbl.innerHTML = ''; gTip.innerHTML = ''; hideWork();
+    return;
+  }
+  const n = atom.levels.length, pairs = n * (n - 1) / 2;
+  note.textContent = atom.key === 'H'
+    ? n + ' levels give ' + TRANS.length + ' possible jumps. Every pair of levels can give a photon. The same gaps work upwards when a photon is absorbed. Pick any arrow or row to see the calculation worked through.'
+    : n + ' levels make ' + pairs + ' pairs, but only ' + TRANS.length + ' jumps happen. The outer electron only jumps between s and p, or between p and d. Pick any arrow or row to see the calculation worked through.';
+  let h = '<table><thead><tr><th>Jump down</th><th>Photon / eV</th><th>λ / nm</th><th>Light</th></tr></thead><tbody>';
+  TRANS.forEach(t => {
+    h += '<tr data-k="' + t.k + '"><td class="nm"><span class="sw" style="background:' + photonColour(t.lam) + '"></span>' + jumpName(t) +
+         '</td><td>' + fmtE(t.gap) + '</td><td>' + fmtL(t.lam) + '</td><td class="nm">' + lightName(t.lam) + '</td></tr>';
+  });
+  tbl.innerHTML = h + '</tbody></table>';
+  tbl.querySelectorAll('tr[data-k]').forEach(r => {
+    r.addEventListener('pointerenter', () => hot(+r.dataset.k));
+    r.addEventListener('pointerleave', () => hot(-1));
+    r.addEventListener('click', () => { hot(+r.dataset.k); showWork(+r.dataset.k); });
+  });
+}
+
+/* =====================================================================
+   Atom and view switching
+   ===================================================================== */
+let preview = 0;
+function previewText(i){
+  const L = atom.levels[i];
+  if (i === 0) return atom.ovlSub;
+  const shapes = atom.key === 'H' ? ' One of its ' + (L.n * L.n) + ' possible cloud shapes.' : '';
+  return (atom.key === 'H' ? 'Electron' : 'Outer electron') + ' in ' + L.name + ', an excited state.' + shapes;
+}
+function buildPreview(){
+  const box = $('#segPrev'), n = Math.min(4, atom.levels.length);
+  box.innerHTML = '';
+  for (let i = 0; i < n; i++){
+    const b = document.createElement('button');
+    b.textContent = atom.levels[i].name; b.dataset.i = i;
+    if (i === preview) b.classList.add('sel');
+    box.appendChild(b);
+  }
+}
+function setPreview(i){
+  preview = i;
+  document.querySelectorAll('#segPrev button').forEach(b => b.classList.toggle('sel', +b.dataset.i === i));
+  cloud.morphTo(orbOf(i));
+  $('#ovlSub').textContent = previewText(i);
+}
+function updateOverlay(){
+  $('#ovlTitle').textContent = atom.name + ' atom';
+  $('#ovlSub').textContent = previewText(preview);
+  $('#ovlCap').innerHTML = 'The cloud is brighter where the electron is more likely to be found. Drag to turn the atom.' +
+    (atom.core ? '<br><span class="key" style="background:#7cc4ff"></span>outer electron &nbsp; <span class="key" style="background:#be96ff"></span>10 inner electrons' : '');
+  $('#intro').textContent = atom.intro;
+  $('#naRule').hidden = atom.key !== 'Na';
+}
+
+function setAtom(key, first){
+  atom = ATOMS[key];
+  document.querySelectorAll('#segAtom button').forEach(b => b.classList.toggle('sel', b.dataset.a === key));
+  TRANS = buildTransitions();
+  cancelRun();
+  buildWell(); buildArrows(); clearSpectrum(); hideWork(); buildTables(); renderChallenges();
+  slider.max = atom.emax; slider.step = atom.dp === 2 ? '0.01' : '0.001';
+  $('#sMin').textContent = (0.5).toFixed(atom.dp) + ' eV';
+  $('#sMax').textContent = atom.emax.toFixed(atom.dp) + ' eV';
+  sliderGradient(); updateTolHint();
+  setE(clamp(rnd(E), 0.5, atom.emax), null);
+  cloud.setCore(atom.core, first);
+  preview = 0; buildPreview();
+  cloud.morphTo(orbOf(0), first);
+  updateOverlay(); updateInsetCap();
+  setStatus(idleMessage(), '');
+}
+
+const viewEl = $('#view'), cvFull = $('#cvFull'), cvInset = $('#cvInset');
+function goWell(){
+  if (viewBusy) return;
+  viewBusy = true; view = 'well'; cancelRun();
+  if (preview !== 0){ preview = 0; buildPreview(); $('#ovlSub').textContent = previewText(0); cloud.morphTo(orbOf(0), true); }
+  $('#btnView').textContent = 'Back to the 3D atom'; $('#btnView').classList.remove('primary');
+  $('#intro').hidden = true; $('#prevBox').hidden = true; $('#ctl').hidden = false; $('#data').hidden = false;
+  setStatus(idleMessage(), '');
+  tween(reduce ? 1 : 900, p => {
+    const e = p * p * p;
+    zoomK = 1 + 13 * e; fullFade = 1 - Math.min(1, p * 1.2);
+    if (p > 0.42) viewEl.classList.add('well');
+  }, null).then(() => {
+    viewEl.classList.add('well');
+    fullOn = false; cvFull.style.visibility = 'hidden';
+    $('#inset').classList.add('on');
+    viewBusy = false; syncButtons();
+  });
+}
+function goAtom(){
+  if (viewBusy) return;
+  viewBusy = true; view = 'atom'; cancelRun();
+  cloud.morphTo(orbOf(0));
+  $('#btnView').textContent = 'Zoom in to the energy levels'; $('#btnView').classList.add('primary');
+  $('#intro').hidden = false; $('#prevBox').hidden = false; $('#ctl').hidden = true; $('#data').hidden = true;
+  viewEl.classList.remove('well'); $('#inset').classList.remove('on');
+  fullOn = true; cvFull.style.visibility = 'visible';
+  tween(reduce ? 1 : 800, p => { const e = easeOut(p); zoomK = 14 - 13 * e; fullFade = Math.min(1, p * 1.4); }, null)
+    .then(() => { zoomK = 1; fullFade = 1; viewBusy = false; syncButtons(); });
+}
+
+/* =====================================================================
+   Mini calculator: four functions, for working out energy differences
+   ===================================================================== */
+const calc = {acc:null, op:null, entry:'0', fresh:true};
+function calcShow(){
+  $('#calcOut').textContent = calc.entry;
+  const sym = {'+':'+', '-':'\u2212', '*':'\u00d7', '/':'\u00f7'};
+  $('#calcSub').textContent = calc.op ? trimNum(calc.acc) + ' ' + sym[calc.op] : '';
+}
+function trimNum(x){
+  if (!isFinite(x)) return '\u2014';
+  const r = Math.round(x * 1e10) / 1e10;
+  return String(r).length > 12 ? r.toPrecision(9).replace(/\.?0+$/, '') : String(r);
+}
+function calcApply(){
+  const b = parseFloat(calc.entry);
+  if (calc.op === null || calc.acc === null) return b;
+  const a = calc.acc;
+  return calc.op === '+' ? a + b : calc.op === '-' ? a - b : calc.op === '*' ? a * b : b === 0 ? NaN : a / b;
+}
+function calcKey(k){
+  if (/^[0-9]$/.test(k)){ calc.entry = (calc.fresh || calc.entry === '0') ? k : calc.entry + k; calc.fresh = false; }
+  else if (k === '.'){ if (calc.fresh){ calc.entry = '0.'; calc.fresh = false; } else if (!calc.entry.includes('.')) calc.entry += '.'; }
+  else if (k === 'C'){ calc.acc = null; calc.op = null; calc.entry = '0'; calc.fresh = true; }
+  else if (k === 'back'){ calc.entry = calc.fresh ? '0' : (calc.entry.length > 1 ? calc.entry.slice(0, -1) : '0'); if (calc.entry === '-') calc.entry = '0'; }
+  else if (k === 'neg'){ calc.entry = calc.entry.startsWith('-') ? calc.entry.slice(1) : '-' + calc.entry; calc.fresh = false; }
+  else if (k === '='){ if (calc.op !== null){ calc.entry = trimNum(calcApply()); calc.acc = null; calc.op = null; calc.fresh = true; } }
+  else { calc.acc = calc.op !== null ? calcApply() : parseFloat(calc.entry); calc.entry = trimNum(calc.acc); calc.op = k; calc.fresh = true; }
+  calcShow();
+}
+$('#calcKeys').addEventListener('click', e => { const b = e.target.closest('button'); if (b) calcKey(b.dataset.k); });
+$('#btnCalc').addEventListener('click', () => {
+  const open = $('#calc').hidden;
+  $('#calc').hidden = !open;
+  $('#btnCalc').setAttribute('aria-expanded', open);
+  if (open) calcShow();
+});
+
+/* ---------- wiring ---------- */
+$('#segAtom').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b || b.classList.contains('sel')) return;
+  setAtom(b.dataset.a);
+});
+$('#segPrev').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b || b.classList.contains('sel') || view !== 'atom') return;
+  setPreview(+b.dataset.i);
+});
+$('#btnView').addEventListener('click', () => { view === 'atom' ? goWell() : goAtom(); });
+$('#btnFire').addEventListener('click', fire);
+$('#btnReset').addEventListener('click', resetAtom);
+$('#segSpeed').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b || b.classList.contains('sel')) return;
+  Array.prototype.forEach.call(b.parentNode.children, c => c.classList.remove('sel'));
+  b.classList.add('sel');
+  rate = +b.dataset.r;
+});
+$('#optZoom').addEventListener('change', () => { if (!$('#optZoom').checked) hideMag(); });
+$('#workClose').addEventListener('click', () => { hideWork(); hot(-1); });
+$('#btnTrans').addEventListener('click', () => { transOn = !transOn; hot(-1); applyTrans(); });
+
+let dragX = 0, dragY = 0;
+cvFull.addEventListener('pointerdown', e => {
+  cloud.dragging = true; dragX = e.clientX; dragY = e.clientY;
+  try { cvFull.setPointerCapture(e.pointerId); } catch (err) {}
+  cvFull.classList.add('grab');
+});
+cvFull.addEventListener('pointermove', e => {
+  if (!cloud.dragging) return;
+  cloud.yaw += (e.clientX - dragX) * 0.009;
+  cloud.pitch = clamp(cloud.pitch + (e.clientY - dragY) * 0.007, -1.3, 1.3);
+  dragX = e.clientX; dragY = e.clientY;
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => cvFull.addEventListener(ev, () => { cloud.dragging = false; cvFull.classList.remove('grab'); }));
+
+/* ---------- frame loop ---------- */
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+  for (let i = tweens.length - 1; i >= 0; i--){
+    const tw = tweens[i];
+    if (tw.tok !== null && tw.tok !== runToken){ tweens.splice(i, 1); continue; }
+    const p = Math.min(1, Math.max(0, (now - tw.t0) / tw.ms));
+    tw.fn(p);
+    if (p >= 1){ tweens.splice(i, 1); tw.res(); }
+  }
+  cloud.step(dt);
+  if (fullOn) renderCloud(cvFull, {zoom:zoomK, fade:fullFade, base:0.15, step:1, size:1.9, bar:true, cyFrac:0.53});
+  if (view === 'well') renderCloud(cvInset, {zoom:1, fade:1, base:0.13, step:2, size:1.35, bar:false});
+  requestAnimationFrame(frame);
+}
+
+/* ---------- start ---------- */
+buildStatic();
+setAtom('H', true);
+requestAnimationFrame(frame);
+
+/* test hooks for automated checks */
+window.__applet = {force:v => { forcePick = !!v; }, classify:en => classify(en), setAtom, goWell, goAtom, fire, setE, state:() => ({atom:atom.key, cur, busy, ionised, view, E, trans:TRANS.length})};
+})();
+</script>
+</body>
+</html>
